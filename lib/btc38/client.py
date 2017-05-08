@@ -75,8 +75,8 @@ class Auth():
         params.update({'time': tonce, 'key': self.access_key})
         query = self.urlencode(params)
         msg = "%s_%s_%s_%s"%(self.access_key, self.user_id, self.secret_key, tonce)
-        signature = hmac.new(self.secret_key.encode("utf8"), msg=msg.encode("utf8"), digestmod=hashlib.md5).hexdigest()
-        # signature = hashlib.md5(msg.encode('utf8')).hexdigest()
+        # signature = hmac.new(self.secret_key.encode("utf8"), msg=msg.encode("utf8"), digestmod=hashlib.md5).hexdigest()
+        signature = hashlib.md5(msg.encode('utf8')).hexdigest()
         return signature, query
 
 class Client():
