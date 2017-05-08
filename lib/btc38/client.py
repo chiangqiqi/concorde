@@ -71,34 +71,34 @@ class Auth():
     def sign_params(self, params=None):
         if params is None:
             params = {}
-        tonce = time.time()
-        params.update({'time': tonce})
-        query = urlencode(params)
+        tonce = int(time.time())
+        params.update({'time': tonce, 'key': self.access_key})
+        query = self.urlencode(params)
         msg = "%s_%s_%s_%s"%(self.access_key, self.user_id, self.secret_key, tonce)
-        signature = hmac.new(self.secret_key.encode("utf8"), msg=msg.encode("utf8"), digestmod=hashlib.md5).hexdigest()
+        # signature = hmac.new(self.secret_key.encode("utf8"), msg=msg.encode("utf8"), digestmod=hashlib.md5).hexdigest()
+        signature = hashlib.md5(msg.encode('utf8')).hexdigest()
+        print(msg)
+        print(signature)
         return signature, query
 
 class Client():
 
-    def __init__(self, access_key=None, secret_key=None):
-        if access_key and secret_key:
-            self.auth = Auth(access_key, secret_key)
-        else:
-            from conf import ACCESS_KEY, SECRET_KEY
-            self.auth = Auth(ACCESS_KEY, SECRET_KEY)
+    def __init__(self, access_key, secret_key, user_id):
+        self.auth = Auth(access_key, secret_key, user_id)
 
 
     async def get(self, meth, params=None):
         path = get_api_path(meth)
         signature, query = self.auth.sign_params(params)
         url = "%s%s?%s&md5=%s" % (BASE_URL, path, query, signature)
+        print(url)
         logging.debug("btc38 client get url: %s", url)
         async with aiohttp.ClientSession() as session:
                 async with session.get(url, timeout = 20) as resp:
                     return await resp.json()
 
-    async def post(self, path, params=None):
-        # print(params)
+    async def post(self, meth, params=None):
+        path = get_api_path(meth)
         signature, query = self.auth.sign_params(params)
         url = "%s%s" % (BASE_URL, path)
         data = "%s&md5=%s" % (query, signature)
@@ -106,6 +106,7 @@ class Client():
         logging.debug("btc38 client post url: %s, data: %s, header: %s", url, data, header)
         async with aiohttp.ClientSession() as session:
                 async with session.post(url, data = data.encode("utf8"), headers = header, timeout = 20) as resp:
+                    print(await resp.text())
                     resp_json =  await resp.json()
                     logging.debug("btc38 client resp: %s", resp_json)
                     return resp_json

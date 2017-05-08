@@ -38,7 +38,7 @@ config = yaml.load(open(os.path.join("", 'config.yaml'), encoding='utf8'))
 
 machine = ArbitrageMachine(config)
 loop = asyncio.get_event_loop()
-loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
+# loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
 # loop.run_until_complete(test())
 # loop.run_until_complete(post_bter())
 # # loop.run_until_complete(post_chbtc())
@@ -306,6 +306,6 @@ def run():
 # loop = asyncio.get_event_loop()
 # loop.run_until_complete(post_bter())
 # loop.run_until_complete(post_chbtc())
-# loop.run_until_complete(post_btc38())
+loop.run_until_complete(post_btc38())
 # # post_chbtc()
 
