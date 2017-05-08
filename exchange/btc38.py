@@ -9,11 +9,11 @@ from .exception import *
 import logging
 
 BTC38TradeFee = {
-	CurrencyPair.ETC_CNY: Fee(0.0005, Fee.FeeTypes.PERC),
+	CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 }
 
 BTC38WithdrawFee = {
-	Currency.ETC: Fee(0.01, Fee.FeeTypes.FIX),
+	Currency.BTS: Fee(0.01, Fee.FeeTypes.MIX, mix_fee2 = 1),
 }
 
 
@@ -23,18 +23,16 @@ class Exchange(ExchangeBase):
 		Currency.CNY: "cny",
 		Currency.BTC: "btc",
 		Currency.LTC: "ltc",
-		Currency.ETC: "etc",
-		Currency.ETH: "eth",
+		Currency.BTS: "bts",
 	}
 	__currency_pair_map = {
 		CurrencyPair.BTC_CNY: "btc_cny",
 		CurrencyPair.LTC_CNY: "ltc_cny",
-		CurrencyPair.ETC_CNY: "etc_cny",
-		CurrencyPair.ETH_CNY: "eth_cny",
+		CurrencyPair.BTS_CNY: "bts_cny",
 	}
 
 	__trade_type_buy = 1
-	__trade_type_sell = 0
+	__trade_type_sell = 2
 
 	__order_status_open = 0 #待成交
 	__order_status_cancelled = 1
@@ -63,9 +61,10 @@ class Exchange(ExchangeBase):
 		return {"balances": balances}
 
 	async def getQuotes(self, currencyPair, size = 50):
-		resp =  await self.client.get('depth', {'currency': self.__currency_pair_map[currencyPair], 'size': size})
-		if 'code' in resp and resp['code'] != OK_CODE:
-			raise ApiErrorException(resp['code'], resp['message'])
+		(c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
+		resp =  await self.client.get('depth', {'c': c, 'mk_type': mk_type})
+		if 'bids' not in resp:
+			raise ApiErrorException("", resp)
 		bids = list(map(lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1])), resp['bids']))
 		asks = list(map(lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1])), resp['asks']))
 		quotes = Quotes(bids = bids, asks = asks)
@@ -73,88 +72,72 @@ class Exchange(ExchangeBase):
 		return quotes
 
 	async def getCashAsync(self):
-		resp =  await self.client.get('getAccountInfo')
-		if 'code' in resp and resp['code'] != OK_CODE:
-			raise ApiErrorException(resp['code'], resp['message'])
-		return round(float(resp['result']['balance']['CNY']['amount']), 2)
+		info = await self.getAccountInfo()
+		return info['balances'][Currency.CNY]
 
 	async def getCurrencyAmountAsync(self, currency):
-		resp =  await self.client.get('getAccountInfo')
-		if 'code' in resp and resp['code'] != OK_CODE:
-			raise ApiErrorException(resp['code'], resp['message'])
-		cur = self.__currency_map[currency].upper()
-		if cur not in resp['result']['balance']:
-			raise CurrencyNotExistException(currency)
-		return float(resp['result']['balance'][cur]['amount'])
-
-	async def getMultipleCurrencyAmountAsync(self, *currencies):
-		resp =  await self.client.get('getAccountInfo')
-		if 'code' in resp and resp['code'] != OK_CODE:
-			raise ApiErrorException(resp['code'], resp['message'])
-		ret = []
-		for currency in currencies:
-			cur = self.__currency_map[currency].upper()
-			if cur not in resp['result']['balance']:
-				raise CurrencyNotExistException(currency)
-			ret.append(float(resp['result']['balance'][cur]['amount']))
-		return ret
+		info = await self.getAccountInfo()
+		return info['balances'][currency]
 
 	async def getCurrencyAddressAsync(self, currency):
-		cur = self.__currency_map[currency]
-		resp = await self.client.get('getUserAddress', {'currency': cur})
-		if 'code' in resp and resp['code'] != OK_CODE:
-			raise ApiErrorException(resp['code'], resp['message'])
-		return resp['message']['datas']['key']
+		raise NotImplementedError("btc38 do not have getCurrencyAddressAsync api")
 
 	async def buyAsync(self, currencyPair, amount, price):
 		logging.debug("btc38 buy %s, amount %s, price %s", currencyPair, amount, price)
-		resp =  await self.client.get('order', {'currency': self.__currency_pair_map[currencyPair],
-										   'amount': amount,
-										   'price': price,
-										   'tradeType': self.__trade_type_buy})
-		if 'code' in resp and resp['code'] != OK_CODE:
-			raise ApiErrorException(resp['code'], resp['message'])
-		return resp['id']
+		(c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
+		resp =  await self.client.post('order', {'coinname': c,
+												'mk_type': mk_type,
+										   		'amount': amount,
+										   		'price': price,
+										   		'type': self.__trade_type_buy})
+		retAndId = resp.split('|')
+		result = retAndId[0]
+		id = None
+		if len(retAndId) > 1:
+			id = retAndId[1]
+		if result != "succ":
+			raise ApiErrorException('', resp)
+		return id
 
 	async def sellAsync(self, currencyPair, amount, price):
 		logging.debug("btc38 sell %s, amount %s, price %s", currencyPair, amount, price)
-		resp =  await self.client.get('order', {'currency': self.__currency_pair_map[currencyPair],
-										   'amount': amount,
-										   'price': price,
-										   'tradeType': self.__trade_type_sell})
-		if 'code' in resp and resp['code'] != OK_CODE:
-			raise ApiErrorException(resp['code'], resp['message'])
-		return resp['id']
+		(c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
+		resp =  await self.client.post('order', {'coinname': c,
+												'mk_type': mk_type,
+										   		'amount': amount,
+										   		'price': price,
+										   		'type': self.__trade_type_sell})
+		retAndId = resp.split('|')
+		result = retAndId[0]
+		id = None
+		if len(retAndId) > 1:
+			id = retAndId[1]
+		if result != "succ":
+			raise ApiErrorException('', resp)
+		return id
 
 	async def cancelOrderAsync(self, currencyPair, id):
 		logging.debug("btc38 cancel order id %d, currencyPair %s", id, currencyPair)
-		resp =  await self.client.get('cancelOrder', {'currency': self.__currency_pair_map[currencyPair],
-											  'id': id})
-		if 'code' in resp and resp['code'] != OK_CODE:
-			raise ApiErrorException(resp['code'], resp['message'])
+		(c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
+		resp =  await self.client.post('cancelOrder', {'mk_type': mk_type,
+													   'order_id': id})
+		if resp != "succ":
+			raise ApiErrorException('', resp)
 		return True
 
 	def _json_to_order(self, currencyPair, orderJs):
 		id = orderJs['id']
-		tradeDate = int(orderJs['trade_date'])
+		tradeDate = orderJs['time']
 		if int(orderJs['type']) == self.__trade_type_buy:
 			buyOrSell = OrderDirection.BUY
 		else:
 			buyOrSell = OrderDirection.SELL
 		price = float(orderJs['price'])
-		amount = float(orderJs['total_amount'])
-		filledPrice = float(orderJs['trade_price'])
-		filledAmount = float(orderJs['trade_amount'])
-		fee = float(orderJs['fees'])
-		orderJsState = int(orderJs['status'])
-		if orderJsState == self.__order_status_open:
-			state = OrderState.INITIAL
-		elif orderJsState == self.__order_status_filled:
-			state = OrderState.FILLED
-		elif orderJsState == self.__order_status_paritially_filled:
-			state = OrderState.PARTIALLY_FILLED
-		else:
-			state = OrderState.CANCELLED
+		amount = float(orderJs['amount'])
+		filledPrice = None
+		filledAmount = None
+		fee = None
+		state = OrderState.INITIAL
 
 		return Order(currencyPair = currencyPair,
 					 id = id,
@@ -169,19 +152,14 @@ class Exchange(ExchangeBase):
 
 
 	async def getOrderAsync(self, currencyPair, id):
-		resp =  await self.client.get('getOrder', {'currency': self.__currency_pair_map[currencyPair],
-											  'id': id})
-		if 'code' in resp and resp['code'] != OK_CODE:
-			raise ApiErrorException(resp['code'], resp['message'])
-
-		order = self._json_to_order(currencyPair, resp)
-		return order
+		raise NotImplementedError("btc38 do not have getOrderAsync api")
 
 	async def getOpenOrdersAsync(self, currencyPair, params = {}):
-		new_params = params
-		new_params.update({"currency": self.__currency_pair_map[currencyPair]})
-		resp =  await self.client.get('getUnfinishedOrdersIgnoreTradeType', params)
-		if 'code' in resp and resp['code'] != OK_CODE:
-			raise ApiErrorException(resp['code'], resp['message'])
+		(c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
+		resp =  await self.client.post('openOrders', {'mk_type': mk_type, 'coinname': c})
+		if resp == 'no_order':
+			resp = []
+		if not isinstance(resp, list):
+			raise ApiErrorException(resp)
 		orders = list(map(lambda orderJs: self._json_to_order(currencyPair, orderJs), resp))
 		return orders

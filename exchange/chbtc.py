@@ -89,18 +89,6 @@ class Exchange(ExchangeBase):
 			raise CurrencyNotExistException(currency)
 		return float(resp['result']['balance'][cur]['amount'])
 
-	async def getMultipleCurrencyAmountAsync(self, *currencies):
-		resp =  await self.client.get('getAccountInfo')
-		if 'code' in resp and resp['code'] != OK_CODE:
-			raise ApiErrorException(resp['code'], resp['message'])
-		ret = []
-		for currency in currencies:
-			cur = self.__currency_map[currency].upper()
-			if cur not in resp['result']['balance']:
-				raise CurrencyNotExistException(currency)
-			ret.append(float(resp['result']['balance'][cur]['amount']))
-		return ret
-
 	async def getCurrencyAddressAsync(self, currency):
 		cur = self.__currency_map[currency]
 		resp = await self.client.get('getUserAddress', {'currency': cur})

@@ -66,10 +66,6 @@ class ExchangeBase(with_metaclass(abc.ABCMeta)):
 		pass
 
 	@abc.abstractmethod
-	async def getMultipleCurrencyAmountAsync(self, *currencies):
-		pass
-
-	@abc.abstractmethod
 	async def getCurrencyAddressAsync(self, currency):
 		pass
 

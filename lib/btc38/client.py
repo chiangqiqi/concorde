@@ -14,23 +14,15 @@ BASE_URL = 'http://api.btc38.com'
 API_BASE_PATH = '/v1'
 API_PATH_DICT = {
 
-    'buy': '%s/private/buy',
+    'order': '%s/submitOrder.php',
 
-    'sell': '%s/private/sell',
+    'openOrders': '%s/getOrderList.php',
 
-    'getOrder': '%s/private/getOrder',
+    'cancelOrder': '%s/cancelOrder.php',
 
-    'openOrders': '%s/private/openOrders',
-
-    'cancelOrder': '%s/private/cancelOrder',
-
-    'depth': '%s/orderBook/%%s',
+    'depth': '%s/depth.php',
 
     'balances': '%s/getMyBalance.php',
-
-    'deposite_address': '%s/private/depositAddress',
-
-    'withdraw': '%s/private/withdraw'
 }
 
 def get_api_path(name):
