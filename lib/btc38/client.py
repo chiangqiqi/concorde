@@ -75,8 +75,8 @@ class Auth():
         params.update({'time': tonce, 'key': self.access_key})
         query = self.urlencode(params)
         msg = "%s_%s_%s_%s"%(self.access_key, self.user_id, self.secret_key, tonce)
-        # signature = hmac.new(self.secret_key.encode("utf8"), msg=msg.encode("utf8"), digestmod=hashlib.md5).hexdigest()
-        signature = hashlib.md5(msg.encode('utf8')).hexdigest()
+        signature = hmac.new(self.secret_key.encode("utf8"), msg=msg.encode("utf8"), digestmod=hashlib.md5).hexdigest()
+        # signature = hashlib.md5(msg.encode('utf8')).hexdigest()
         return signature, query
 
 class Client():
@@ -94,8 +94,11 @@ class Client():
                 async with session.get(url, timeout = 20) as resp:
                     resp_text = await resp.text()
                     logging.debug("btc38 resp: %s", resp_text)
-                    return json.loads(resp_text)
-                    
+                    try:
+                        ret = json.loads(resp_text)
+                    except Exception as e:
+                        return resp_text
+
     async def post(self, meth, params=None):
         path = get_api_path(meth)
         signature, query = self.auth.sign_params(params)
@@ -107,4 +110,7 @@ class Client():
                 async with session.post(url, data = data.encode("utf8"), headers = header, timeout = 20) as resp:
                     resp_text = await resp.text()
                     logging.debug("btc38 resp: %s", resp_text)
-                    return json.loads(resp_text)
+                    try:
+                        ret = json.loads(resp_text)
+                    except Exception as e:
+                        return resp_text

@@ -20,7 +20,7 @@ BTC38WithdrawFee = {
 OK_CODE = 1000
 class Exchange(ExchangeBase):
 	__currency_map = {
-		Currency.CNY: "CNY",
+		Currency.CNY: "cny",
 		Currency.BTC: "btc",
 		Currency.LTC: "ltc",
 		Currency.ETC: "etc",
@@ -53,16 +53,13 @@ class Exchange(ExchangeBase):
 
 	async def getAccountInfo(self):
 		resp =  await self.client.post('balances')
-		print(resp)
-		if 'code' in resp and resp['code'] != OK_CODE:
-			raise ApiErrorException(resp['code'], resp['message'])
-		resp_balances = resp['result']['balance']
+		if 'cny_balance' not in resp:
+			raise ApiErrorException("", resp)
+		resp_balances = resp
 		balances = {}
-		__inverted_currency_map = {v.upper():k for (k,v) in self.__currency_map.items()}
-		for currency_str in resp_balances:
-			if currency_str in __inverted_currency_map:
-				currency = __inverted_currency_map[currency_str]
-				balances.update({currency: float(resp_balances[currency_str]['amount'])})
+		for (currency, currency_str) in self.__currency_map.items():
+			if currency_str + "_balance" in resp_balances:
+				balances.update({currency: float(resp_balances[currency_str + "_balance"])})
 		return {"balances": balances}
 
 	async def getQuotes(self, currencyPair, size = 50):
