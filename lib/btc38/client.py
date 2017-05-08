@@ -96,6 +96,7 @@ class Client():
                     logging.debug("btc38 resp: %s", resp_text)
                     try:
                         ret = json.loads(resp_text)
+                        return ret
                     except Exception as e:
                         return resp_text
 
@@ -112,5 +113,6 @@ class Client():
                     logging.debug("btc38 resp: %s", resp_text)
                     try:
                         ret = json.loads(resp_text)
+                        return ret
                     except Exception as e:
                         return resp_text
