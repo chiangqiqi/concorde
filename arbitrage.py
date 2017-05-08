@@ -13,6 +13,7 @@ from lib.chbtc.client import Client as ChbtcClient
 from exchange.bter import Exchange as BterExchange
 from exchange.chbtc import Exchange as CHBTCExchange
 from exchange.btc38 import Exchange as Btc38Exchange
+from exchange.yunbi import Exchange as YunbiExchange
 from exchange.currency import Currency, CurrencyPair
 import importlib
 import asyncio
@@ -42,18 +43,26 @@ loop = asyncio.get_event_loop()
 # loop.run_until_complete(test())
 # loop.run_until_complete(post_bter())
 # # loop.run_until_complete(post_chbtc())
-def post_yunbi():
+async def post_yunbi():
 	access_key = 'gmSnwZZOiQTC4O90TozKE7JffCWxKEXxUGDOli9x'
 	secret_key = '22xL90c7ImcxabkG6WfqS8VwOB2H2K9UQkxUrfJl'
-	client = Client(access_key=access_key, secret_key=secret_key)
-	# markets =  client.post(get_api_path('withdraw'), {'amount': "0.2", 'id': "etc_my@0xc4b177e97e448e183c31817fe3548b358709d5d0"})
-	# markets =  client.get(get_api_path('detail_deposit'), {'txid': "d9cf0425b732baa1375894664e8936e953619f92"})
-	markets =  client.get(get_api_path('members'))
-	# markets =  client.get(get_api_path('my_trades'), {'market': 'btscny'})
-	# markets = client.get(get_api_path('depth'), {'market': 'zeccny', 'limit': 10})
-	markets = client.get(get_api_path('deposite_address'), {'currency': 'etc'})
-	print(markets)
+	config = {'access_key': access_key, 'secret_key': secret_key}
+	exchange = YunbiExchange(config)
+	# result = await exchange.getAccountInfo()
+	# result = await exchange.getCashAsync()
+	# result = await exchange.getCurrencyAmountAsync(Currency.ETC)
+	# result = await exchange.getCurrencyAddressAsync(Currency.ETC)
+	# result = await exchange.buyAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 100, price = 0.1)
+	result = await exchange.sellAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 10.0, price = 100.0)
+	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.ETC_CNY, id = "2017050717835714")
+	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "355322269")
+	# result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.BTS_CNY)
+	# result = await exchange.getQuotes(currencyPair = CurrencyPair.BTC_CNY)
+	print(result)
+	# balances =  client.get('withdraw', {'currency': 'etc', 'amount': 0.12, 'safePwd': "danxiarongkai520", 'fees': 0.01, 'receiveAddr': '0xc4b177e97e448e183c31817fe3548b358709d5d0'})
+	# balances =  client.post(client.get_api_path('deposite_address'), {'currency': 'bts'})
 	# print(client.get(get_api_path('depth'), {'market': 'zeccny', 'limit': 10}))
+
 
 async def slow_operation(n):
     await asyncio.sleep(1)
@@ -306,6 +315,7 @@ def run():
 # loop = asyncio.get_event_loop()
 # loop.run_until_complete(post_bter())
 # loop.run_until_complete(post_chbtc())
-loop.run_until_complete(post_btc38())
+# loop.run_until_complete(post_btc38())
+loop.run_until_complete(post_yunbi())
 # # post_chbtc()
 

@@ -1,6 +1,8 @@
 import urllib
 import json
 import urllib.request
+import aiohttp
+import logging
 
 from .auth import Auth
 
@@ -62,25 +64,26 @@ class Client():
             from conf import ACCESS_KEY, SECRET_KEY
             self.auth = Auth(ACCESS_KEY, SECRET_KEY)
 
-    def get(self, path, params=None):
+    async def get(self, path, params=None):
         verb = "GET"
         signature, query = self.auth.sign_params(verb, path, params)
         url = "%s%s?%s&signature=%s" % (BASE_URL, path, query, signature)
-        print(url)
-        resp = urllib.request.urlopen(url)
-        data = resp.readlines()
-        if len(data):
-            return json.loads(data[0].decode("utf8"))
+        logging.debug("yunbi client get url: %s", url)
+        async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout = 20) as resp:
+                    resp_json =  await resp.json()
+                    logging.debug("yunbi client resp: %s", resp_json)
+                    return resp_json
 
-    def post(self, path, params=None):
+    async def post(self, path, params=None):
         verb = "POST"
-        print(params)
         signature, query = self.auth.sign_params(verb, path, params)
         url = "%s%s" % (BASE_URL, path)
         data = "%s&signature=%s" % (query, signature)
-        print(data)
-        print(url)
-        resp = urllib.request.urlopen(url, data.encode("utf8"))
-        data = resp.readlines()
-        if len(data):
-            return json.loads(data[0].decode("utf8"))
+        headers = {}
+        logging.debug("yunbi client post url: %s, data: %s, headers: %s", url, data, headers)
+        async with aiohttp.ClientSession() as session:
+                async with session.post(url, data = data.encode("utf8"), timeout = 20) as resp:
+                    resp_json =  await resp.json()
+                    logging.debug("yunbi client resp: %s", resp_json)
+                    return resp_json

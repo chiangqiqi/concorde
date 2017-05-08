@@ -8,7 +8,7 @@ arbitrage:
   coin_trade_minimum: #最少交易数量
     ETC_CNY: 0.02 
   coin_trade_maximum: #最多交易数量
-    ETC_CNY: 0.3
+    ETC_CNY: 100
 
 exchange:
   - name: bter

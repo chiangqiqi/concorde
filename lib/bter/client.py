@@ -90,7 +90,9 @@ class Client():
         logging.debug("bter client get url: %s", url)
         async with aiohttp.ClientSession() as session:
                 async with session.get(url, timeout = 20) as resp:
-                    return await resp.json()
+                    resp_json =  await resp.json()
+                    logging.debug("bter client resp: %s", resp_json)
+                    return resp_json
         # req = urllib.request.Request(url, headers = header)
         # resp = urllib.request.urlopen(req)
         # data = resp.readlines()
