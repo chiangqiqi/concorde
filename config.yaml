@@ -1,21 +1,45 @@
 arbitrage:
-  currency_pairs: ['ETC_CNY']
-  exchanges: ['bter', 'chbtc']
+  currency_pairs: ['ETC_CNY', 'BTS_CNY']
+  exchanges: ['bter', 'chbtc', 'btc38', 'yunbi']
+
+  BTS_CNY:
+    arbitrage_exchanges: ['btc38', 'yunbi']
+    allow_slippage_perc: 0.0007
+
+  ETC_CNY:
+    arbitrage_exchanges: ['chbtc', 'bter']
+    allow_slippage_perc: 0.0007
+
   check_interval_second: 3
   arbitrage_target_gain: 0.003
   balance_target_gain: 0.001
   balance_ratio: 0.1 #买币方币数/卖币方币数 < balance_ratio时，按照balance_target_gain算套利机会，否则用arbitrage_target_gain
   coin_trade_minimum: #最少交易数量
-    ETC_CNY: 0.02 
+    ETC_CNY: 0.03
+    BTS_CNY: 5
   coin_trade_maximum: #最多交易数量
     ETC_CNY: 100
+    BTS_CNY: 10000
 
 exchange:
   - name: bter
     access_key: '24F6B6F0-E43C-482F-9BE3-F135F40BBFF8'
     secret_key: '92283cf7bc98afceefdc449359670ad1c6d70238ca202db6c1f34637a29f82e4'
     max_order_retry: 5
+    max_cancel_order_retry: 5
   - name: chbtc
     access_key: 'a9e1f09e-1459-44df-8aea-024d97c37487'
     secret_key: '4086a247-092a-4893-ac4c-62c2f6ee6242'
     max_order_retry: 5
+    max_cancel_order_retry: 5
+  - name: btc38
+    access_key: '498c1b144488bf99ff7eee444a5db618'
+    secret_key: 'b93381bc0c6a88606fe7522ad0a4f51ac36fdc1a29446927b0f4ab615d4796c5'
+    user_id: "195563"
+    max_order_retry: 5
+    max_cancel_order_retry: 5
+  - name: yunbi
+    access_key: 'gmSnwZZOiQTC4O90TozKE7JffCWxKEXxUGDOli9x'
+    secret_key: '22xL90c7ImcxabkG6WfqS8VwOB2H2K9UQkxUrfJl'
+    max_order_retry: 5
+    max_cancel_order_retry: 5

@@ -2,7 +2,7 @@
 
 from lib.btc38.client import Client as Client
 from .currency import Currency, CurrencyPair
-from .order import OrderState, OrderDirection, Order
+from .order import OrderState, OrderDirection, Order, ORDER_ID_FILLED_IMMEDIATELY
 from .exchange import ExchangeBase, Fee
 from .quotes import Quotes, OrderBookItem
 from .exception import *
@@ -92,7 +92,7 @@ class Exchange(ExchangeBase):
 										   		'type': self.__trade_type_buy})
 		retAndId = resp.split('|')
 		result = retAndId[0]
-		id = None
+		id = ORDER_ID_FILLED_IMMEDIATELY
 		if len(retAndId) > 1:
 			id = retAndId[1]
 		if result != "succ":
@@ -109,7 +109,7 @@ class Exchange(ExchangeBase):
 										   		'type': self.__trade_type_sell})
 		retAndId = resp.split('|')
 		result = retAndId[0]
-		id = None
+		id = ORDER_ID_FILLED_IMMEDIATELY
 		if len(retAndId) > 1:
 			id = retAndId[1]
 		if result != "succ":

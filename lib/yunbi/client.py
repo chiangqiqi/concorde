@@ -71,9 +71,13 @@ class Client():
         logging.debug("yunbi client get url: %s", url)
         async with aiohttp.ClientSession() as session:
                 async with session.get(url, timeout = 20) as resp:
-                    resp_json =  await resp.json()
-                    logging.debug("yunbi client resp: %s", resp_json)
-                    return resp_json
+                    resp_text = await resp.text()
+                    logging.debug("yunbi client resp: %s", resp_text)
+                    try:
+                        ret = json.loads(resp_text)
+                        return ret
+                    except Exception as e:
+                        return resp_text
 
     async def post(self, path, params=None):
         verb = "POST"
@@ -82,8 +86,13 @@ class Client():
         data = "%s&signature=%s" % (query, signature)
         headers = {}
         logging.debug("yunbi client post url: %s, data: %s, headers: %s", url, data, headers)
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         async with aiohttp.ClientSession() as session:
-                async with session.post(url, data = data.encode("utf8"), timeout = 20) as resp:
-                    resp_json =  await resp.json()
-                    logging.debug("yunbi client resp: %s", resp_json)
-                    return resp_json
+                async with session.post(url, data = data.encode("utf8"), headers = headers, timeout = 20) as resp:
+                    resp_text = await resp.text()
+                    logging.debug("yunbi client resp: %s", resp_text)
+                    try:
+                        ret = json.loads(resp_text)
+                        return ret
+                    except Exception as e:
+                        return resp_text

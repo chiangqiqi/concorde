@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from copy import copy
 
+ORDER_ID_FILLED_IMMEDIATELY = "FILLED_IMMEDIATELY"
+
 class OrderState:
     INITIAL = 'INITIAL' # 待成交
     # SUBMITTED = 'SUBMITTED'

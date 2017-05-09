@@ -23,16 +23,18 @@ import yaml
 import os
 from machine import ArbitrageMachine
 
-# async def error(flag):
-# 	if flag:
-# 		raise ValueError("value error")
-# 	else:
-# 		return 1
+async def error(flag):
+	if flag:
+		raise ValueError("value error")
+	else:
+		return 1
 
-# async def test():
-# 	(a, b) = await asyncio.gather(error(True), error(False), return_exceptions = True)
-# 	print(a)
-# 	print(b)
+async def test():
+	errorFunc = error
+	return await errorFunc(True)
+	# (a, b) = await asyncio.gather(error(True), error(False), return_exceptions = True)
+	# print(a)
+	# print(b)
 
 logging.config.fileConfig("./logging.config")
 config = yaml.load(open(os.path.join("", 'config.yaml'), encoding='utf8'))
@@ -40,6 +42,7 @@ config = yaml.load(open(os.path.join("", 'config.yaml'), encoding='utf8'))
 machine = ArbitrageMachine(config)
 loop = asyncio.get_event_loop()
 # loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
+loop.run_until_complete(machine.run(CurrencyPair.BTS_CNY))
 # loop.run_until_complete(test())
 # loop.run_until_complete(post_bter())
 # # loop.run_until_complete(post_chbtc())
@@ -52,11 +55,11 @@ async def post_yunbi():
 	# result = await exchange.getCashAsync()
 	# result = await exchange.getCurrencyAmountAsync(Currency.ETC)
 	# result = await exchange.getCurrencyAddressAsync(Currency.ETC)
-	# result = await exchange.buyAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 100, price = 0.1)
-	result = await exchange.sellAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 10.0, price = 100.0)
-	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.ETC_CNY, id = "2017050717835714")
-	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "355322269")
-	# result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.BTS_CNY)
+	# result = await exchange.buyAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 100, price = 0.01)
+	# result = await exchange.sellAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 10.0, price = 100.0)
+	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "422130692")
+	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "422130692")
+	result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.BTS_CNY)
 	# result = await exchange.getQuotes(currencyPair = CurrencyPair.BTC_CNY)
 	print(result)
 	# balances =  client.get('withdraw', {'currency': 'etc', 'amount': 0.12, 'safePwd': "danxiarongkai520", 'fees': 0.01, 'receiveAddr': '0xc4b177e97e448e183c31817fe3548b358709d5d0'})
@@ -94,16 +97,17 @@ async def post_bter():
 	secret_key = '92283cf7bc98afceefdc449359670ad1c6d70238ca202db6c1f34637a29f82e4'
 	config = {'access_key': access_key, 'secret_key': secret_key}
 	exchange = BterExchange(config)
-	# result = await exchange.getAccountInfo()
 	# result = await exchange.getMultipleCurrencyAmountAsync(Currency.ETC, Currency.CNY)
 	# result = await exchange.getCurrencyAmountAsync(Currency.ETC)
 	# address = await exchange.getCurrencyAddressAsync(Currency.ETC)
 	# result = await exchange.buyAsync(currencyPair = CurrencyPair.ETC_CNY, amount = 0.2, price = 1.0)
-	result = await exchange.sellAsync(currencyPair = CurrencyPair.ETC_CNY, amount = 0.1, price = 100.46)
+	result = await exchange.sellAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 10.1, price = 100.46)
 	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.ETC_CNY, id = "151188973")
 	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.ETC_CNY, id = "151178662")
 	# result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.ETC_CNY)
 	# result = await exchange.getQuotes(currencyPair = CurrencyPair.ETC_CNY)
+	print(result)
+	result = await exchange.getAccountInfo()
 	print(result)
 	# client = BterClient(access_key=access_key, secret_key=secret_key)
 	# balances =  client.post('balances')
@@ -316,6 +320,6 @@ def run():
 # loop.run_until_complete(post_bter())
 # loop.run_until_complete(post_chbtc())
 # loop.run_until_complete(post_btc38())
-loop.run_until_complete(post_yunbi())
+# loop.run_until_complete(post_yunbi())
 # # post_chbtc()
 

@@ -92,16 +92,6 @@ class Exchange(ExchangeBase):
 		return resp['address']
 
 	async def buyAsync(self, currencyPair, amount, price):
-
-# #sell 10 dogecoins at price 0.01
-# params = {'market': 'dogcny', 'side': 'sell', 'volume': 10, 'price': 0.01}
-# res = client.post(get_api_path('orders'), params)
-# print res
-
-# #buy 10 dogecoins at price 0.001
-# params = {'market': 'dogcny', 'side': 'buy', 'volume': 10, 'price': 0.001}
-# res = client.post(get_api_path('orders'), params)
-
 		logging.debug("yunbi buy %s, amount %s, price %s", currencyPair, amount, price)
 		resp =  await self.client.post(get_api_path('orders'), {'market': self.__currency_pair_map[currencyPair],
 																'volume': amount,
@@ -110,8 +100,9 @@ class Exchange(ExchangeBase):
 		if 'error' in resp:
 			(code, error_msg) = resp['error'].split(':')
 			raise ApiErrorException(code, error_msg)
-
-		return resp['orderNumber']
+		if 'id' not in resp:
+			raise ApiErrorException('', resp)
+		return resp['id']
 
 	async def sellAsync(self, currencyPair, amount, price):
 		logging.debug("yunbi sell %s, amount %s, price %s", currencyPair, amount, price)
@@ -122,38 +113,43 @@ class Exchange(ExchangeBase):
 		if 'error' in resp:
 			(code, error_msg) = resp['error'].split(':')
 			raise ApiErrorException(code, error_msg)
-
-		return resp['orderNumber']
+		if 'id' not in resp:
+			raise ApiErrorException('', resp)
+		return resp['id']
 
 	async def cancelOrderAsync(self, currencyPair, id):
-		logging.debug("yunbi cancel order id %d, currencyPair %s", id, currencyPair)
-		resp =  await self.client.post(get_api_path('cancelOrder'), {'currencyPair': self.__currency_pair_map[currencyPair],
-										  'orderNumber': id})
-		if str(resp['result']).lower() != 'true':
-			raise ApiErrorException(resp['code'], resp['message'])
+		logging.debug("yunbi cancel order id %s, currencyPair %s", id, currencyPair)
+		resp =  await self.client.post(get_api_path('delete_order'), {'id': id})
+		if 'error' in resp:
+			raise ApiErrorException(resp['error']['code'], resp['error']['message'])
 		return True
 
 	def _json_to_order(self, currencyPair, orderJs):
-		id = orderJs['orderNumber']
-		tradeDate = int(orderJs['timestamp'])
-		if orderJs['type'].lower() == 'buy':
+		id = orderJs['id']
+		tradeDate = orderJs['created_at']
+		if orderJs['side'].lower() == 'buy':
 			buyOrSell = OrderDirection.BUY
 		else:
 			buyOrSell = OrderDirection.SELL
-		price = float(orderJs['initialRate'])
-		amount = float(orderJs['initialAmount'])
-		filledPrice = float(orderJs['filledRate'])
-		filledAmount = float(orderJs['filledAmount'])
+		price = float(orderJs['price'])
+		amount = float(orderJs['volume'])
+		filledPrice = float(orderJs['avg_price'])
+		filledAmount = float(orderJs['executed_volume'])
 		if 'feeValue' in orderJs:
 			fee = float(orderJs['feeValue'])
 		else:
 			fee = None
-		if filledAmount == amount:
+		if orderJs['state'] == 'done':
 			state = OrderState.FILLED
-		elif filledAmount > 0.0 and filledAmount < amount:
-			state = OrderState.PARTIALLY_FILLED
+		if orderJs['state'] == 'cancel':
+			state = OrderState.CANCELLED
+		elif orderJs['state'] == 'wait':
+			if filledAmount > 0.0 and filledAmount < amount:
+				state = OrderState.PARTIALLY_FILLED
+			else:
+				state = OrderState.INITIAL
 		else:
-			state = OrderState.INITIAL
+			raise ValueError("unknow order state: %s"%(orderJs['state']))
 
 		return Order(currencyPair = currencyPair,
 					 id = id,
@@ -168,17 +164,18 @@ class Exchange(ExchangeBase):
 
 
 	async def getOrderAsync(self, currencyPair, id):
-		resp =  await self.client.post(get_api_path('getOrder'), {'currencyPair': self.__currency_pair_map[currencyPair],
-											  'orderNumber': id})
-		if str(resp['result']).lower() != 'true':
-			raise ApiErrorException(resp['code'], resp['message'])
+		resp =  await self.client.get(get_api_path('order'), {'id': id})
+		if 'error' in resp:
+			raise ApiErrorException(resp['error']['code'], resp['error']['message'])
+		if 'id' not in resp:
+			raise ApiErrorException('', resp)
 
-		order = self._json_to_order(currencyPair, resp['order'])
+		order = self._json_to_order(currencyPair, resp)
 		return order
 
 	async def getOpenOrdersAsync(self, currencyPair, params = {}):
-		resp =  await self.client.post(get_api_path('openOrders'), {'currencyPair': self.__currency_pair_map[currencyPair]})
-		if str(resp['result']).lower() != 'true':
-			raise ApiErrorException(resp['code'], resp['message'])
-		orders = list(map(lambda orderJs: self._json_to_order(currencyPair, orderJs), resp['orders']))
+		resp =  await self.client.get(get_api_path('orders'), {'market': self.__currency_pair_map[currencyPair]})
+		if not isinstance(resp, list):
+			raise ApiErrorException(resp)
+		orders = list(map(lambda orderJs: self._json_to_order(currencyPair, orderJs), resp))
 		return orders
