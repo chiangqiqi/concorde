@@ -7,6 +7,7 @@ from .exchange import ExchangeBase, Fee
 from .quotes import Quotes, OrderBookItem
 from .exception import *
 import logging
+import math
 
 BTC38TradeFee = {
 	CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
@@ -88,7 +89,7 @@ class Exchange(ExchangeBase):
 		resp =  await self.client.post('order', {'coinname': c,
 												'mk_type': mk_type,
 										   		'amount': amount,
-										   		'price': price,
+										   		'price': self._floor(price,4),
 										   		'type': self.__trade_type_buy})
 		retAndId = resp.split('|')
 		result = retAndId[0]
@@ -105,7 +106,7 @@ class Exchange(ExchangeBase):
 		resp =  await self.client.post('order', {'coinname': c,
 												'mk_type': mk_type,
 										   		'amount': amount,
-										   		'price': price,
+										   		'price': self._floor(price,4),
 										   		'type': self.__trade_type_sell})
 		retAndId = resp.split('|')
 		result = retAndId[0]
@@ -124,6 +125,10 @@ class Exchange(ExchangeBase):
 		if resp != "succ":
 			raise ApiErrorException('', resp)
 		return True
+
+	def _floor(self, num, precision = 3):
+		multiplier = math.pow(10.0, precision)
+		return math.floor(num * multiplier) / multiplier
 
 	def _json_to_order(self, currencyPair, orderJs):
 		id = orderJs['id']
