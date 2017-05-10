@@ -141,7 +141,7 @@ class Exchange(ExchangeBase):
 			fee = None
 		if orderJs['state'] == 'done':
 			state = OrderState.FILLED
-		if orderJs['state'] == 'cancel':
+		elif orderJs['state'] == 'cancel':
 			state = OrderState.CANCELLED
 		elif orderJs['state'] == 'wait':
 			if filledAmount > 0.0 and filledAmount < amount:

@@ -11,7 +11,7 @@ import sys, traceback
 # from exchange.bter import Exchange as BterExchange
 # from exchange.chbtc import Exchange as CHBTCExchange
 from exchange.currency import Currency, CurrencyPair, currencyPair2Currency
-from exchange.order import ORDER_ID_FILLED_IMMEDIATELY
+from exchange.order import OrderState, ORDER_ID_FILLED_IMMEDIATELY
 import importlib
 import asyncio
 import logging
@@ -91,6 +91,22 @@ class ArbitrageMachine(object):
 			return False
 		return True
 
+	# return order state
+	async def waitOrderToBeFilled(self, currencyPair, exchangeName, id, waitOrderFilledSecond):
+		queryOrderStateIntervalMs = self.config['arbitrage']['query_order_state_interval_ms']
+		if id == ORDER_ID_FILLED_IMMEDIATELY:
+			return OrderState.FILLED
+
+		state = OrderState.INITIAL
+		end_time = time.time() + waitOrderFilledSecond
+		while time.time() < end_time:
+			order = await self.exchanges[exchangeName].getOrderAsync(currencyPair, id)
+			state = order.state
+			if order.state == OrderState.FILLED or order.state == OrderState.CANCELLED:
+				break
+			await asyncio.sleep(queryOrderStateIntervalMs/1000.)
+		return state
+
 	async def doTrade(self, 
 					  currencyPair, 
 					  buyExchangeName, 
@@ -106,6 +122,9 @@ class ArbitrageMachine(object):
 					buyExchangeName, buyPrice, buyAmount, sellExchangeName, sellPrice, sellAmount)
 
 		assert(buyAmount == sellAmount)
+		# waitSeconds config
+		waitSeconds = self.config['arbitrage']['wait_order_filled_second']
+
 		# get retry config
 		buyMaxOrderRetry = filter(lambda x: x['name'] == buyExchangeName, 
 								self.config['exchange']).__next__()['max_order_retry']
@@ -133,8 +152,27 @@ class ArbitrageMachine(object):
 		if buyOrderId is not None and sellOrderId is not None:
 			logging.info("place order to %s(buyPrice: %s, buyAmount: %s) and %s(sellPrice: %s, sellAmount: %s) success",
 						 buyExchangeName, buyPrice, buyAmount, sellExchangeName, sellPrice, sellAmount)
+
 			# TODO: wait order to be fill
-			
+			logging.info("now wait orders to be filled, wait %s seconds at max.", waitSeconds)
+			(buyOrderState, sellOrderState) = await asyncio.gather(
+				self.waitOrderToBeFilled(currencyPair, buyExchangeName, buyOrderId, waitSeconds),
+				self.waitOrderToBeFilled(currencyPair, sellExchangeName, sellOrderId, waitSeconds))
+			logging.info("buyOrderState %s, sellOrderState %s", buyOrderState, sellOrderState)
+
+			buyOrderStateStr = str(buyOrderState)
+			if buyOrderState == OrderState.INITIAL:
+				buyOrderStateStr = "OPEN"
+			sellOrderStateStr = str(sellOrderState)
+			if sellOrderState == OrderState.INITIAL:
+				sellOrderStateStr = "OPEN"
+
+			if buyOrderState != OrderState.FILLED:
+				logging.warn("buy order(%s) is not filled in exchange %s in %s seconds", 
+					buyOrderId, buyExchangeName, waitSeconds)
+			if buyOrderState != OrderState.FILLED:
+				logging.warn("sell order(%s) is not filled in exchange %s in %s seconds", 
+					sellOrderId, sellExchangeName, waitSeconds)
 			#流水日志
 			water = {"time": datetime.now(),
 					 "buyExchange": buyExchangeName,

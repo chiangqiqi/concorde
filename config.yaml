@@ -1,22 +1,31 @@
+sms:
+  api_url: 'http://sms.market.alicloudapi.com/singleSendSms'
+  app_key: '23814070'
+  app_secret: 'ff12790b50fc880f083e8520d6086af5'
+  app_code: '6125ee74f7bd44ba9065f56a6672debb'
+
 arbitrage:
   currency_pairs: ['ETC_CNY', 'BTS_CNY']
   exchanges: ['bter', 'chbtc', 'btc38', 'yunbi']
 
   BTS_CNY:
-    arbitrage_exchanges: ['btc38', 'yunbi']
-    allow_slippage_perc: 0.0007
+    arbitrage_exchanges: ['bter', 'yunbi']
+    allow_slippage_perc: 0.001
 
   ETC_CNY:
     arbitrage_exchanges: ['chbtc', 'bter']
     allow_slippage_perc: 0.0007
 
-  check_interval_second: 3
-  arbitrage_target_gain: 0.003
-  balance_target_gain: 0.001
+  check_interval_second: 3 #多久检查一次套利机会
+  wait_order_filled_second: 10 
+  query_order_state_interval_ms: 500
+
+  arbitrage_target_gain: 0.008
+  balance_target_gain: 0.002
   balance_ratio: 0.1 #买币方币数/卖币方币数 < balance_ratio时，按照balance_target_gain算套利机会，否则用arbitrage_target_gain
   coin_trade_minimum: #最少交易数量
     ETC_CNY: 0.03
-    BTS_CNY: 5
+    BTS_CNY: 10
   coin_trade_maximum: #最多交易数量
     ETC_CNY: 100
     BTS_CNY: 10000
