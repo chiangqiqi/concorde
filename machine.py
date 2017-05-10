@@ -91,67 +91,6 @@ class ArbitrageMachine(object):
 			return False
 		return True
 
-	# # return True if both order success
-	# async def doArbitrageOrder(self, 
-	# 						 currencyPair, 
-	# 						 buyExchangeName, 
-	# 						 buyPrice, 
-	# 						 buyAmount,
-	# 						 sellExchangeName,
-	# 						 sellPrice,
-	# 						 sellAmount):
-	# 	logging.info("doArbitrageOrder: [%s] buy price %f, buy amount %f, [%s] sell price %f, sell amount %f",
-	# 				buyExchangeName, buyPrice, buyAmount, sellExchangeName, sellPrice, sellAmount)
-	# 	(buyOrderId, sellOrderId) = await asyncio.gather(
-	# 		self.exchanges[buyExchangeName].buyAsync(currencyPair, price = buyPrice, amount = buyAmount),
-	# 		self.exchanges[sellExchangeName].sellAsync(currencyPair, price = sellPrice, amount = sellAmount),
-	# 		return_exceptions = True)
-	# 	if issubclass(type(buyOrderId), Exception) and issubclass(type(sellOrderId), Exception):
-	# 		logging.warn("place buy order to %s fail[%s] and place sell order to %s fail[%s], return to checkEntryAndArbitrage",
-	# 				buyExchangeName, buyOrderId, sellExchangeName, sellOrderId)
-	# 		return (False, None, None)
-
-	# 	if issubclass(type(buyOrderId), Exception):
-	# 		maxOrderRetry = filter(lambda x: x['name'] == buyExchangeName, self.config['exchange']).__next__()['max_order_retry']
-	# 		tryTimes = 1
-	# 		while issubclass(type(buyOrderId), Exception):
-	# 			logging.warn("place buy order to %s fail[%s], will try again[%d/%d]",
-	# 					buyExchangeName, buyOrderId, tryTimes, maxOrderRetry)
-	# 			tryTimes += 1
-	# 			if tryTimes > 3:
-	# 				logging.warn("place buy order to %s fail[%s], will try again[%d/%d]",
-	# 						buyExchangeName, buyOrderId, tryTimes, maxOrderRetry)
-	# 				break
-	# 			else:
-	# 				buyOrderId = await self.exchanges[buyExchangeName].buyAsync(currencyPair, price = buyPrice, amount = buyAmount)
-
-	# 	if issubclass(type(sellOrderId), Exception):
-	# 		maxOrderRetry = filter(lambda x: x['name'] == sellExchangeName, self.config['exchange']).__next__()['max_order_retry']
-	# 		tryTimes = 1
-	# 		while issubclass(type(sellOrderId), Exception):
-	# 			logging.warn("place sell order to %s fail[%s], will try again[%d/%d]",
-	# 					sellExchangeName, sellOrderId, tryTimes, maxOrderRetry)
-	# 			tryTimes += 1
-	# 			if tryTimes > 3:
-	# 				logging.warn("place sell order to %s fail[%s], will try again[%d/%d]",
-	# 						sellExchangeName, sellOrderId, tryTimes, maxOrderRetry)
-	# 				break
-	# 			else:
-	# 				sellOrderId = await self.exchanges[sellExchangeName].sellAsync(currencyPair, price = sellPrice, amount = sellAmount)
-
-	# 	# just log
-	# 	if not issubclass(type(buyOrderId), Exception):
-	# 		logging.info("place buy order to %s success, price %f, amount %f, id %s",
-	# 				buyExchangeName, buyPrice, buyAmount, buyOrderId)
-	# 	if not issubclass(type(sellOrderId), Exception):
-	# 		logging.info("place sell order to %s success, price %f, amount %f, id %s",
-	# 				sellExchangeName, sellPrice, sellAmount, sellOrderId)
-	# 	if not issubclass(type(buyOrderId), Exception) and not issubclass(type(sellOrderId), Exception):
-	# 		return (True, buyOrderId, sellOrderId)
-	# 	else:
-	# 		return (False, None, None)
-
-
 	async def doTrade(self, 
 					  currencyPair, 
 					  buyExchangeName, 
