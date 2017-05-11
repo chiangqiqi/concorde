@@ -316,7 +316,8 @@ class ArbitrageMachine(object):
 
 		#转币如果允许的话
 		transferAmount = buyExchangeCoinAmount * withdrawPerc
-		if sellExchangeCoinAmount < coinTradeMinimum and \
+		if usingWithdraw and \
+		sellExchangeCoinAmount < coinTradeMinimum and \
 		transferAmount >= withdrawMinimum and \
 		isExchangeWithdrawAllowed[buyExchangeName]:
 			logging.info("transfer %s %s from %s to %s", transferAmount, currency, buyExchangeName, sellExchangeName)
@@ -386,8 +387,9 @@ class ArbitrageMachine(object):
 				sellValue = bidPrice * tradeAmount
 				tradeCost = self.exchanges[buyExchangeName].calculateTradeFee(currencyPair, tradeAmount, askPrice) + \
 							 self.exchanges[sellExchangeName].calculateTradeFee(currencyPair, tradeAmount, bidPrice)
+				withdrawCost = 0.0
 				if usingWithdraw:
-					withdrawCost = self.exchanges[buyExchangeName].calculateWithdrawFee(currency, tradeAmount) * bidPrice
+					withdrawCost += self.exchanges[buyExchangeName].calculateWithdrawFee(currency, tradeAmount) * bidPrice
 					withdrawCost += self.exchanges[sellExchangeName].calculateWithdrawFee(Currency.CNY, sellValue)
 
 				#计算收益
@@ -395,7 +397,13 @@ class ArbitrageMachine(object):
 				if usingWithdraw:
 					alphaFlat -= withdrawCost
 				alpha = (alphaFlat) / buyValue
-				if alpha >= (gainTarget): #发现套利机会
+				if alpha > 1.0: #risk, 潜在风险，有可能是api返回了错误的价格信息，此时不交易
+					logging.warn("alpha %s >> 1.0, maybe risk")
+					logging.warn("%s[ask %.6f(%.6f)], %s[bid %.6f(%.6f)](%s->%s)arbitrage!!!!"+
+						"buyValue=%.2f, sellValue=%.2f, tradeCost=%.2f, withdrawCost=%.2f, alphaFlat=%.2f, alpha = %f",
+						buyExchangeName, askPrice, askAmount, sellExchangeName, bidPrice, bidAmount,
+						buyExchangeName, sellExchangeName, buyValue, sellValue, tradeCost, withdrawCost, alphaFlat, alpha)
+				elif alpha >= (gainTarget): #发现套利机会
 					logging.info("%s[ask %.6f(%.6f)], %s[bid %.6f(%.6f)](%s->%s)arbitrage!!!!"+
 						"buyValue=%.2f, sellValue=%.2f, tradeCost=%.2f, withdrawCost=%.2f, alphaFlat=%.2f, alpha = %f",
 						buyExchangeName, askPrice, askAmount, sellExchangeName, bidPrice, bidAmount,
