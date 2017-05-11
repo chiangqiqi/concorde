@@ -6,8 +6,8 @@ reverse = 0
 
 from_time = datetime(2017,5,6,14,0,0)
 to_time = datetime(2017,5,7,14,0,0)
-from_time = datetime(2017,5,9,0,0,0)
-to_time = datetime(2018,5,9,13,0,0)
+from_time = datetime(2016,5,11,0,0,0)
+to_time = datetime(2018,5,11,0,0,0)
 earn = {}
 with open(file_path, 'r') as fn:
 	for line in fn.readlines():
@@ -16,6 +16,12 @@ with open(file_path, 'r') as fn:
 		if dt < from_time or dt > to_time:
 			continue
 		#print(dt)
+
+		alpha = float(line.split("alpha = ")[-1])
+		alphaFlat = float(line.split("alpha_flat=")[-1].split(',')[0])
+		if alpha > 0.5:
+			print("error: alpha %f"%(alpha))
+			continue
 
 		idx = line.find("arbitrage")
 		sub_line = line[:idx]
@@ -27,8 +33,6 @@ with open(file_path, 'r') as fn:
 		if pre_dircetion is not None and pre_dircetion != cur_direction:
 			reverse += 1
 		pre_dircetion = cur_direction
-		alpha = float(line.split("alpha = ")[-1])
-		alphaFlat = float(line.split("alpha_flat=")[-1].split(',')[0])
 		earn[cur_direction] += alphaFlat
 		if alpha > 0.0 and alpha <= 1.0:
 			alphas.append(alpha)

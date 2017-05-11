@@ -397,7 +397,7 @@ class ArbitrageMachine(object):
 				if usingWithdraw:
 					alphaFlat -= withdrawCost
 				alpha = (alphaFlat) / buyValue
-				if alpha > 1.0: #risk, 潜在风险，有可能是api返回了错误的价格信息，此时不交易
+				if alpha >= 0.4: #risk, 潜在风险，有可能是api返回了错误的价格信息，此时不交易
 					logging.warn("alpha %s >> 1.0, maybe risk")
 					logging.warn("%s[ask %.6f(%.6f)], %s[bid %.6f(%.6f)](%s->%s)arbitrage!!!!"+
 						"buyValue=%.2f, sellValue=%.2f, tradeCost=%.2f, withdrawCost=%.2f, alphaFlat=%.2f, alpha = %f",
@@ -444,6 +444,18 @@ class ArbitrageMachine(object):
 
 				(exchangeAQoutes, exchangeBQoutes) = await asyncio.gather(self.exchanges[exchangeAName].getQuotes(currencyPair),
 																		  self.exchanges[exchangeBName].getQuotes(currencyPair))
+				# 风险控制，有些交易所返回的深度数据居然会是错的
+				topBid = exchangeBQoutes.getBids()[0].price
+				topAsk = exchangeBQoutes.getAsks()[0].price
+				if topAsk <= topBid:
+					logging.warn("risk!!!%s qoutes maybe wrong, ask %f, bid %f, stop arbitrage", exchangeBName, topAsk, topBid)
+					continue
+				topBid = exchangeAQoutes.getBids()[0].price
+				topAsk = exchangeAQoutes.getAsks()[0].price
+				if topAsk <= topBid:
+					logging.warn("risk!!!%s qoutes maybe wrong, ask %f, bid %f, stop arbitrage", exchangeAName, topAsk, topBid)
+					continue
+
 				# logging.debug("%s->%s", exchangeAName, exchangeAQoutes)
 				# logging.debug("%s->%s", exchangeBName, exchangeBQoutes)
 				isArbitrage = await self.checkEntryAndArbitrage(currencyPair = currencyPair, 
