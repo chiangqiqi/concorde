@@ -90,5 +90,5 @@ class ExchangeBase(with_metaclass(abc.ABCMeta)):
 		pass
 
 	# @abc.abstractmethod
-	# def withdraw(self, currency, amount, address, params={}):
-	# 	pass
+	async def withdraw(self, currency, amount, address, memo, params={}):
+		raise NotImplementedError("withdraw api not implemented")

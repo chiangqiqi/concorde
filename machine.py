@@ -263,6 +263,31 @@ class ArbitrageMachine(object):
 			return True
 		return False
 		
+	async def testTransferCoin(self):
+		return await self.transferCoin(CurrencyPair.BTS_CNY, "btc38", "yunbi", 10)
+
+	# return True if submit transfer success, else False
+	async def transferCoin(self, currencyPair, fromExchange, toExchange, amount):
+		currency = currencyPair2Currency(currencyPair)
+		logging.info("getting address of exchange %s for currency %s", toExchange, currency)
+		address = await self.exchanges[toExchange].getCurrencyAddressAsync(currency = currency)
+		exchangeWithdrawMemo = self.config['arbitrage'][currencyPair]['exchange_withdraw_memo']
+
+		memo = 'rk_withdraw'
+		if currency == Currency.BTS:
+			memo = exchangeWithdrawMemo[toExchange]
+
+		logging.info("calling exchange %s to transfer %d coin to exchange %s, address = %s, memo = %s", 
+						fromExchange, amount, toExchange, address, memo)
+		try:
+			await self.exchanges[fromExchange].withdraw(currency = currency, amount = amount, address = address, memo = memo)
+		except Exception as e:
+			# TODO: 短信通知，如果提币失败的话
+			logging.error("withdraw error: %s", e)
+			return False
+
+		return True
+
 	# return True if arbitrage exist and order success else False
 	async def checkEntryAndArbitrage(self, 
 									currencyPair,
@@ -271,20 +296,42 @@ class ArbitrageMachine(object):
 									sellExchangeName,
 									bidItems):
 		currency = currencyPair2Currency(currencyPair)
+		#config
 		balanceRatio = self.config['arbitrage']['balance_ratio']
 		coinTradeMinimum = self.config['arbitrage']['coin_trade_minimum'][currencyPair]
 		coinTradeMaximum = self.config['arbitrage']['coin_trade_maximum'][currencyPair]
 		allowSlippagePerc = self.config['arbitrage'][currencyPair]['allow_slippage_perc']
+		usingWithdraw = self.config['arbitrage'][currencyPair]['using_withdraw']
+		withdrawPerc = self.config['arbitrage'][currencyPair]['withdraw_perc']
+		withdrawMinimum = self.config['arbitrage'][currencyPair]['withdraw_minimum']
+		isExchangeWithdrawAllowed = self.config['arbitrage'][currencyPair]['exchange_withdraw_permission']
+		logging.debug("usingWithdraw %s, withdrawPerc %s, withdrawMinimum %s, isExchangeWithdrawAllowed %s, exchangeWithdrawMemo %s", 
+			usingWithdraw, withdrawPerc, withdrawMinimum, isExchangeWithdrawAllowed, exchangeWithdrawMemo)
+
+		#account info
+		buyExchangeCash = self.exchanges[buyExchangeName].accountInfo['balances'][Currency.CNY]
+		sellExchangeCash = self.exchanges[sellExchangeName].accountInfo['balances'][Currency.CNY]
+		buyExchangeCoinAmount = self.exchanges[buyExchangeName].accountInfo['balances'][currency]
+		sellExchangeCoinAmount = self.exchanges[sellExchangeName].accountInfo['balances'][currency]
+
+		#转币如果允许的话
+		transferAmount = buyExchangeCoinAmount * withdrawPerc
+		# if sellExchangeCoinAmount < coinTradeMinimum and \
+		if True and \
+		transferAmount >= withdrawMinimum and \
+		isExchangeWithdrawAllowed[buyExchangeName]:
+			logging.info("transfer %s %s from %s to %s", tradeAmount, currency, buyExchangeName, sellExchangeName)
+			self.transferCoin(currencyPair = currencyPair, 
+							  fromExchange = buyExchangeName, 
+							  toExchange = sellExchangeName, 
+							  amount = transferAmount)
+			return
 
 		#校验是否有足够的钱或币进行交易
 		if await self.notEnoughBalanceToTrade(currencyPair, buyExchangeName, askItems[0].price, sellExchangeName):
 			return False
 		
 		#决定套利收获
-		buyExchangeCash = self.exchanges[buyExchangeName].accountInfo['balances'][Currency.CNY]
-		sellExchangeCash = self.exchanges[sellExchangeName].accountInfo['balances'][Currency.CNY]
-		buyExchangeCoinAmount = self.exchanges[buyExchangeName].accountInfo['balances'][currency]
-		sellExchangeCoinAmount = self.exchanges[sellExchangeName].accountInfo['balances'][currency]
 		gainTarget = self.determineGainTarget(buyExchangeCoinAmount, sellExchangeCoinAmount)
 
 		#判断是否能够套利
@@ -340,11 +387,14 @@ class ArbitrageMachine(object):
 				sellValue = bidPrice * tradeAmount
 				tradeCost = self.exchanges[buyExchangeName].calculateTradeFee(currencyPair, tradeAmount, askPrice) + \
 							 self.exchanges[sellExchangeName].calculateTradeFee(currencyPair, tradeAmount, bidPrice)
-				withdrawCost = self.exchanges[buyExchangeName].calculateWithdrawFee(currency, tradeAmount) * bidPrice
+				if usingWithdraw:
+					withdrawCost = self.exchanges[buyExchangeName].calculateWithdrawFee(currency, tradeAmount) * bidPrice
+					withdrawCost += self.exchanges[sellExchangeName].calculateWithdrawFee(Currency.CNY, sellValue)
 
 				#计算收益
-				# alphaFlat = sellValue - buyValue - withdrawCost - tradeCost
 				alphaFlat = sellValue - buyValue - tradeCost
+				if usingWithdraw:
+					alphaFlat -= withdrawCost
 				alpha = (alphaFlat) / buyValue
 				if alpha >= (gainTarget): #发现套利机会
 					logging.info("%s[ask %.6f(%.6f)], %s[bid %.6f(%.6f)](%s->%s)arbitrage!!!!"+

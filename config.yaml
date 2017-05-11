@@ -8,19 +8,11 @@ arbitrage:
   currency_pairs: ['ETC_CNY', 'BTS_CNY']
   exchanges: ['bter', 'chbtc', 'btc38', 'yunbi']
 
-  BTS_CNY:
-    arbitrage_exchanges: ['bter', 'yunbi']
-    allow_slippage_perc: 0.001
-
-  ETC_CNY:
-    arbitrage_exchanges: ['chbtc', 'bter']
-    allow_slippage_perc: 0.0007
-
-  check_interval_second: 3 #多久检查一次套利机会
+  check_interval_second: 300 #多久检查一次套利机会
   wait_order_filled_second: 10 
   query_order_state_interval_ms: 500
 
-  arbitrage_target_gain: 0.008
+  arbitrage_target_gain: 0.01
   balance_target_gain: 0.002
   balance_ratio: 0.1 #买币方币数/卖币方币数 < balance_ratio时，按照balance_target_gain算套利机会，否则用arbitrage_target_gain
   coin_trade_minimum: #最少交易数量
@@ -28,7 +20,31 @@ arbitrage:
     BTS_CNY: 10
   coin_trade_maximum: #最多交易数量
     ETC_CNY: 100
-    BTS_CNY: 10000
+    BTS_CNY: 110
+    # BTS_CNY: 10000
+
+  BTS_CNY:
+    arbitrage_exchanges: ['bter', 'yunbi']
+    allow_slippage_perc: 0.001
+    #using_withdraw 为True时，算收益要去掉提现手续费（币跟现金）
+    using_withdraw: True
+    withdraw_perc: 0.9
+    withdraw_minimum: 100
+
+    #只有当using_withdraw为True时，exchange_withdraw_permission才生效
+    exchange_withdraw_permission:
+      btc38: True
+      bter: False
+      yunbi: False
+
+    # bts比较特殊，需要memo才能确保成功
+    exchange_withdraw_memo:
+      yunbi: '75845781'
+
+
+  ETC_CNY:
+    arbitrage_exchanges: ['chbtc', 'bter']
+    allow_slippage_perc: 0.0007
 
 exchange:
   - name: bter
@@ -45,6 +61,8 @@ exchange:
     access_key: '498c1b144488bf99ff7eee444a5db618'
     secret_key: 'b93381bc0c6a88606fe7522ad0a4f51ac36fdc1a29446927b0f4ab615d4796c5'
     user_id: "195563"
+    withdraw_proxy_url: "http://127.0.0.1:10010/bter/withdraw"
+    rk_withdraw_secret_key: 'dc449359670ad1c6d70238ca202db6c1f34637a29f82e4' #必须跟proxy brower的key配置一致
     max_order_retry: 5
     max_cancel_order_retry: 5
   - name: yunbi
@@ -52,3 +70,4 @@ exchange:
     secret_key: '22xL90c7ImcxabkG6WfqS8VwOB2H2K9UQkxUrfJl'
     max_order_retry: 5
     max_cancel_order_retry: 5
+

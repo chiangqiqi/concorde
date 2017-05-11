@@ -22,6 +22,7 @@ import logging.config
 import yaml
 import os
 from machine import ArbitrageMachine
+import aiohttp
 
 async def error(flag):
 	if flag:
@@ -29,15 +30,12 @@ async def error(flag):
 	else:
 		return 1
 
-async def test():
-	print(time.time())
-	await asyncio.sleep(0.5)
-	print(time.time())
-	# errorFunc = error
-	# return await errorFunc(True)
-	# (a, b) = await asyncio.gather(error(True), error(False), return_exceptions = True)
-	# print(a)
-	# print(b)
+async def test(url="http://www.baidu.com"):
+	async with aiohttp.ClientSession() as session:
+	    async with session.get(url, timeout = 10) as resp:
+	        resp_text = await resp.text()
+	        print(resp.headers['Set-Cookie'])
+
 
 logging.config.fileConfig("./logging.config")
 config = yaml.load(open(os.path.join("", 'config.yaml'), encoding='utf8'))
@@ -47,7 +45,7 @@ loop = asyncio.get_event_loop()
 # loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
 loop.run_until_complete(machine.run(CurrencyPair.BTS_CNY))
 # loop.run_until_complete(test())
-# loop.run_until_complete(machine.testWaitOrders())
+# loop.run_until_complete(machine.testTransferCoin())
 # loop.run_until_complete(post_bter())
 # # loop.run_until_complete(post_chbtc())
 async def post_yunbi():
@@ -58,10 +56,10 @@ async def post_yunbi():
 	# result = await exchange.getAccountInfo()
 	# result = await exchange.getCashAsync()
 	# result = await exchange.getCurrencyAmountAsync(Currency.ETC)
-	# result = await exchange.getCurrencyAddressAsync(Currency.ETC)
+	result = await exchange.getCurrencyAddressAsync(Currency.BTS)
 	# result = await exchange.buyAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 100, price = 0.01)
 	# result = await exchange.sellAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 10.0, price = 100.0)
-	result = await exchange.getOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "422406658")
+	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "422406658")
 	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "422130692")
 	# result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.BTS_CNY)
 	# result = await exchange.getQuotes(currencyPair = CurrencyPair.BTC_CNY)

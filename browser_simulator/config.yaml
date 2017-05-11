@@ -1,0 +1,17 @@
+listen_port: 10010
+
+rk_secret_key: 'dc449359670ad1c6d70238ca202db6c1f34637a29f82e4'
+
+browsers:
+  - name: bter
+    hearbeat_interval_second: 60
+    heartbeat_url: "http://www.btc38.com/trade/trade_setaddr.html?coinname=bts"
+    withdraw_url: "http://www.btc38.com/trade/drawBalance.php"
+    address_index_url: "http://www.btc38.com/trade/getMyAddr.php"
+    headers:
+      User-Agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36"
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+      Referer: "http://www.btc38.com/trade/trade_balance.html"
+      Accept-Encoding: "gzip, deflate, sdch"
+      Accept-Language: "zh-CN,zh;q=0.8,en;q=0.6"
+      Cookie: "BTC38_trade_pwd=0; BTC38_trade_pwd_is_need=0; BTC38_md5=e7b915da6a4bd70dbda999836e2fa0cb; BTC38_openkey=63ea23f7fbcb144be79af103459e9c59; BTC38_opentoken=79dae691d514377da529c4514e926bb6; BTC38_id=195563; BTC38_nickname=R.K.; BTC38_tel=15002; BTC38_credentials=4452021988; BTC38_co=0; BTC38_realname=%E5%A4%8F; __jsluid=51ca0505674eb88e080eef3f9dc8eb57"

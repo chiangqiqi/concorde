@@ -8,12 +8,15 @@ from .quotes import Quotes, OrderBookItem
 from .exception import *
 import logging
 import math
+import json
+import aiohttp
 
 BTC38TradeFee = {
 	CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 }
 
 BTC38WithdrawFee = {
+	Currency.CNY: Fee(0.01, Fee.FeeTypes.MIX, mix_fee2 = 1),
 	Currency.BTS: Fee(0.01, Fee.FeeTypes.MIX, mix_fee2 = 1),
 }
 
@@ -88,9 +91,9 @@ class Exchange(ExchangeBase):
 		(c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
 		resp =  await self.client.post('order', {'coinname': c,
 												'mk_type': mk_type,
-										   		'amount': amount,
-										   		'price': self._floor(price,4),
-										   		'type': self.__trade_type_buy})
+												'amount': amount,
+												'price': self._floor(price,4),
+												'type': self.__trade_type_buy})
 		retAndId = resp.split('|')
 		result = retAndId[0]
 		id = ORDER_ID_FILLED_IMMEDIATELY
@@ -105,9 +108,9 @@ class Exchange(ExchangeBase):
 		(c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
 		resp =  await self.client.post('order', {'coinname': c,
 												'mk_type': mk_type,
-										   		'amount': amount,
-										   		'price': self._floor(price,4),
-										   		'type': self.__trade_type_sell})
+												'amount': amount,
+												'price': self._floor(price,4),
+												'type': self.__trade_type_sell})
 		retAndId = resp.split('|')
 		result = retAndId[0]
 		id = ORDER_ID_FILLED_IMMEDIATELY
@@ -168,3 +171,55 @@ class Exchange(ExchangeBase):
 			raise ApiErrorException(resp)
 		orders = list(map(lambda orderJs: self._json_to_order(currencyPair, orderJs), resp))
 		return orders
+
+	async def withdraw(self, currency, amount, address, memo, params={}):
+		proxyCodeMap = {'SUCCESS': 0, 
+						'LIMIT': 1, #提币限制 
+						'PROCESSING': 2,
+						'FAIL': 3,
+						'SYSTEM_BUSY': 4,
+						'PARAMS_ERROR': 5,
+						'INTERNAL_SERVER_ERROR': 6,
+						'OVER_BALANCE': 7}
+		logging.debug("btc38 withdraw currency %s to address %s, amount %s, memo %s",
+					  currency, address, amount, memo)
+		path = self.config['withdraw_proxy_url']
+		rkWithdrawSecretKey = self.config['rk_withdraw_secret_key']
+
+		# 币数化正，btc38仅支持整数提币
+		url = "%s?coinname=%s&address=%s&balance=%s&memo=%s&rk_secret_key=%s"%(path, 
+																			  self.__currency_map[currency].upper(), 
+																			  address, 
+																			  int(amount), 
+																			  memo, 
+																			  rkWithdrawSecretKey)
+		logging.debug("btc38 client get url: %s", url)
+		async with aiohttp.ClientSession() as session:
+				async with session.get(url, timeout = 20) as resp:
+					resp_text = await resp.text()
+					logging.debug("btc38 resp: %s", resp_text)
+					try:
+						ret = json.loads(resp_text)
+					except Exception as e:
+						raise ApiErrorException('', resp_text)
+
+					if ret['code'] != proxyCodeMap['SUCCESS'] or ret['code'] != proxyCodeMap['PROCESSING']:
+						raise ApiErrorException(ret['code'], ret['message'])
+					return True
+
+					# if ret.code == proxyCodeMap.FAIL or ret.code == proxyCodeMap.SYSTEM_BUSY:
+					# 	logging.warn("btc38 withdraw failed, please check btc38 website see if you need re-login")
+					# 	return False
+					# elif ret.code == proxyCodeMap.PARAMS_ERROR or ret.code == proxyCodeMap.INTERNAL_SERVER_ERROR:
+					# 	logging.warn("btc38 withdraw failed, please check your parameters or ProxyBrower server")
+					# 	return False
+					# elif ret.code == proxyCodeMap.LIMIT:
+					# 	logging.warn("btc38 reach withdraw limit")
+					# 	return False
+					# elif ret.code == proxyCodeMap.OVER_BALANCE:
+					# 	logging.warn("btc38 reach withdraw limit")
+					# 	return False
+					# else:
+					# 	logging.info("btc38 withdraw success, currency %s, to_address %s, amount %s, memo %s", 
+					# 				 currency, address, amount, memo)
+					# 	return True

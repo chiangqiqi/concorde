@@ -15,6 +15,7 @@ YunbiTradeFee = {
 }
 
 YunbiWithdrawFee = {
+	Currency.CNY: Fee(0.001, Fee.FeeTypes.FIX),
 	Currency.ETC: Fee(0.01, Fee.FeeTypes.FIX),
 	Currency.ZEC: Fee(0.0002, Fee.FeeTypes.FIX),
 	Currency.BTS: Fee(10, Fee.FeeTypes.FIX),
