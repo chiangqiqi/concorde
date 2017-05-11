@@ -452,12 +452,12 @@ class ArbitrageMachine(object):
 				j += 1
 
 	async def run(self, currencyPair):
-		prev_check_time = datetime.now()
+		prev_check_time = None
 		interval = self.config['arbitrage']['check_interval_second']
 		while True:
 			tick = datetime.now()
-			elapse = (tick - prev_check_time).total_seconds()
-			if (elapse < interval):
+			if prev_check_time is not None and (tick - prev_check_time).total_seconds() < interval:
+				elapse = (tick - prev_check_time).total_seconds()
 				time.sleep(interval - elapse)
 			else:
 				try:
