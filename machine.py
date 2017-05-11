@@ -403,6 +403,7 @@ class ArbitrageMachine(object):
 						"buyValue=%.2f, sellValue=%.2f, tradeCost=%.2f, withdrawCost=%.2f, alphaFlat=%.2f, alpha = %f",
 						buyExchangeName, askPrice, askAmount, sellExchangeName, bidPrice, bidAmount,
 						buyExchangeName, sellExchangeName, buyValue, sellValue, tradeCost, withdrawCost, alphaFlat, alpha)
+					return False
 				elif alpha >= (gainTarget): #发现套利机会
 					logging.info("%s[ask %.6f(%.6f)], %s[bid %.6f(%.6f)](%s->%s)arbitrage!!!!"+
 						"buyValue=%.2f, sellValue=%.2f, tradeCost=%.2f, withdrawCost=%.2f, alphaFlat=%.2f, alpha = %f",
