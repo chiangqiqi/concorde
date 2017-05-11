@@ -8,7 +8,7 @@ arbitrage:
   currency_pairs: ['ETC_CNY', 'BTS_CNY']
   exchanges: ['bter', 'chbtc', 'btc38', 'yunbi']
 
-  check_interval_second: 300 #多久检查一次套利机会
+  check_interval_second: 1.5 #多久检查一次套利机会
   wait_order_filled_second: 10 
   query_order_state_interval_ms: 500
 
