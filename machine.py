@@ -305,8 +305,8 @@ class ArbitrageMachine(object):
 		withdrawPerc = self.config['arbitrage'][currencyPair]['withdraw_perc']
 		withdrawMinimum = self.config['arbitrage'][currencyPair]['withdraw_minimum']
 		isExchangeWithdrawAllowed = self.config['arbitrage'][currencyPair]['exchange_withdraw_permission']
-		logging.debug("usingWithdraw %s, withdrawPerc %s, withdrawMinimum %s, isExchangeWithdrawAllowed %s, exchangeWithdrawMemo %s", 
-			usingWithdraw, withdrawPerc, withdrawMinimum, isExchangeWithdrawAllowed, exchangeWithdrawMemo)
+		logging.debug("usingWithdraw %s, withdrawPerc %s, withdrawMinimum %s, isExchangeWithdrawAllowed %s", 
+			usingWithdraw, withdrawPerc, withdrawMinimum, isExchangeWithdrawAllowed)
 
 		#account info
 		buyExchangeCash = self.exchanges[buyExchangeName].accountInfo['balances'][Currency.CNY]
