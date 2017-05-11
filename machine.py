@@ -320,8 +320,8 @@ class ArbitrageMachine(object):
 		if True and \
 		transferAmount >= withdrawMinimum and \
 		isExchangeWithdrawAllowed[buyExchangeName]:
-			logging.info("transfer %s %s from %s to %s", tradeAmount, currency, buyExchangeName, sellExchangeName)
-			self.transferCoin(currencyPair = currencyPair, 
+			logging.info("transfer %s %s from %s to %s", transferAmount, currency, buyExchangeName, sellExchangeName)
+			await self.transferCoin(currencyPair = currencyPair, 
 							  fromExchange = buyExchangeName, 
 							  toExchange = sellExchangeName, 
 							  amount = transferAmount)
