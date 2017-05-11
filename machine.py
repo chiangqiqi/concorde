@@ -316,8 +316,7 @@ class ArbitrageMachine(object):
 
 		#转币如果允许的话
 		transferAmount = buyExchangeCoinAmount * withdrawPerc
-		# if sellExchangeCoinAmount < coinTradeMinimum and \
-		if True and \
+		if sellExchangeCoinAmount < coinTradeMinimum and \
 		transferAmount >= withdrawMinimum and \
 		isExchangeWithdrawAllowed[buyExchangeName]:
 			logging.info("transfer %s %s from %s to %s", transferAmount, currency, buyExchangeName, sellExchangeName)

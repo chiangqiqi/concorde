@@ -24,7 +24,8 @@ arbitrage:
     # BTS_CNY: 10000
 
   BTS_CNY:
-    arbitrage_exchanges: ['bter', 'yunbi']
+    # arbitrage_exchanges: ['bter', 'yunbi']
+    arbitrage_exchanges: ['btc38', 'yunbi']
     allow_slippage_perc: 0.001
     #using_withdraw 为True时，算收益要去掉提现手续费（币跟现金）
     using_withdraw: True
