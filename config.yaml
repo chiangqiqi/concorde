@@ -12,8 +12,8 @@ arbitrage:
   wait_order_filled_second: 10 
   query_order_state_interval_ms: 500
 
-  arbitrage_target_gain: 0.01
-  balance_target_gain: 0.002
+  arbitrage_target_gain: 0.09
+  balance_target_gain: 0.09
   balance_ratio: 0.1 #买币方币数/卖币方币数 < balance_ratio时，按照balance_target_gain算套利机会，否则用arbitrage_target_gain
   coin_trade_minimum: #最少交易数量
     ETC_CNY: 0.03

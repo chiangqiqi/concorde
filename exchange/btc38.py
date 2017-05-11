@@ -160,7 +160,9 @@ class Exchange(ExchangeBase):
 
 
 	async def getOrderAsync(self, currencyPair, id):
-		raise NotImplementedError("btc38 do not have getOrderAsync api")
+		orders = await self.getOpenOrdersAsync(currencyPair)
+		return filter(lambda x: x.id == id, orders).__next__()
+		# raise NotImplementedError("btc38 do not have getOrderAsync api")
 
 	async def getOpenOrdersAsync(self, currencyPair, params = {}):
 		(c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
