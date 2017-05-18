@@ -1,8 +1,11 @@
 sms:
+  notify_phonenum: "15002029322"
   api_url: 'http://sms.market.alicloudapi.com/singleSendSms'
   app_key: '23814070'
   app_secret: 'ff12790b50fc880f083e8520d6086af5'
   app_code: '6125ee74f7bd44ba9065f56a6672debb'
+  sign_name: '壹刻珠宝'
+  template_code: 'SMS_67155971'
 
 arbitrage:
   currency_pairs: ['ETC_CNY', 'BTS_CNY']

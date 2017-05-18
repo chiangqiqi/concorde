@@ -8,20 +8,23 @@ import time
 import math
 import json, requests
 import sys, traceback
-# from exchange.bter import Exchange as BterExchange
-# from exchange.chbtc import Exchange as CHBTCExchange
-from exchange.currency import Currency, CurrencyPair, currencyPair2Currency
-from exchange.order import OrderState, ORDER_ID_FILLED_IMMEDIATELY
 import importlib
 import asyncio
 import logging
 import logging.config
+
+# from exchange.bter import Exchange as BterExchange
+# from exchange.chbtc import Exchange as CHBTCExchange
+from exchange.currency import Currency, CurrencyPair, currencyPair2Currency
+from exchange.order import OrderState, ORDER_ID_FILLED_IMMEDIATELY
+from sms.ali_sms import AliSms
 
 waterLogger = logging.getLogger("water")
 
 class ArbitrageMachine(object):
 	def __init__(self, config):
 		self.config = config
+		self.smsClient = AliSms(config['sms'])
 		self.exchanges = {}
 		exchanges = self.config['arbitrage']['exchanges']
 		logging.info("initilizing %d exchange: %s", len(exchanges), exchanges)
@@ -107,6 +110,19 @@ class ArbitrageMachine(object):
 			await asyncio.sleep(queryOrderStateIntervalMs/1000.)
 		return state
 
+	async def sendOpenOrderWarnSms(self, exchange, orderId, amount, price):
+		phonenum = self.config['sms']['notify_phonenum']
+		logging.info("sending open order warn sms to phonenum: %s", phonenum)
+		result = await self.smsClient.sendOpenOrderSms(phonenum = phonenum,
+													   exchange = exchange,
+													   orderId = orderId,
+													   amount = amount,
+													   price = price)
+		if not result['success']:
+			logging.warn("send sms to phonenum %s failed, error_msg: %s", phonenum, result['message'])
+
+	# async def sendOpenOrderSms(self, phonenum, exchange, orderId, amount, price):
+
 	async def doTrade(self, 
 					  currencyPair, 
 					  buyExchangeName, 
@@ -170,9 +186,14 @@ class ArbitrageMachine(object):
 			if buyOrderState != OrderState.FILLED:
 				logging.warn("buy order(%s) is not filled in exchange %s in %s seconds", 
 					buyOrderId, buyExchangeName, waitSeconds)
-			if buyOrderState != OrderState.FILLED:
+				# send sms
+				await self.sendOpenOrderWarnSms(buyExchangeName, buyOrderId, buyAmount, buyPrice)
+
+			if sellOrderState != OrderState.FILLED:
 				logging.warn("sell order(%s) is not filled in exchange %s in %s seconds", 
 					sellOrderId, sellExchangeName, waitSeconds)
+				await self.sendOpenOrderWarnSms(sellExchangeName, sellOrderId, sellAmount, sellPrice)
+
 			#流水日志
 			water = {"time": datetime.now(),
 					 "buyExchange": buyExchangeName,
@@ -180,11 +201,11 @@ class ArbitrageMachine(object):
 					 "buyPrice": buyPrice,
 					 "buyAmount": buyAmount,
 					 "buyOrderId": buyOrderId,
-					 "buyOrderState": "OpenOrFilled",
+					 "buyOrderState": buyOrderStateStr,
 					 "sellPrice": sellPrice,
 					 "sellAmount": sellAmount,
 					 "sellOrderId": sellOrderId,
-					 "sellOrderState": "OpenOrFilled",
+					 "sellOrderState": sellOrderStateStr,
 					 "tradeCost": tradeCost,
 					 "alphaFlat": alphaFlat,
 					 "alpha": alpha}
@@ -263,9 +284,6 @@ class ArbitrageMachine(object):
 			return True
 		return False
 		
-	async def testTransferCoin(self):
-		return await self.transferCoin(CurrencyPair.BTS_CNY, "btc38", "yunbi", 10)
-
 	# return True if submit transfer success, else False
 	async def transferCoin(self, currencyPair, fromExchange, toExchange, amount):
 		currency = currencyPair2Currency(currencyPair)
@@ -397,7 +415,7 @@ class ArbitrageMachine(object):
 				if usingWithdraw:
 					alphaFlat -= withdrawCost
 				alpha = (alphaFlat) / buyValue
-				if alpha >= 0.4: #risk, 潜在风险，有可能是api返回了错误的价格信息，此时不交易
+				if alpha >= 0.1: #risk, 潜在风险，有可能是api返回了错误的价格信息，此时不交易
 					logging.warn("alpha %s >> 1.0, maybe risk")
 					logging.warn("%s[ask %.6f(%.6f)], %s[bid %.6f(%.6f)](%s->%s)arbitrage!!!!"+
 						"buyValue=%.2f, sellValue=%.2f, tradeCost=%.2f, withdrawCost=%.2f, alphaFlat=%.2f, alpha = %f",

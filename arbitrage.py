@@ -7,6 +7,14 @@ from datetime import datetime
 import time
 import json, requests
 import time
+import importlib
+import asyncio
+import logging
+import logging.config
+import yaml
+import os
+import aiohttp
+
 from lib.yunbi.client import Client, get_api_path
 from lib.bter.client import Client as BterClient
 from lib.chbtc.client import Client as ChbtcClient
@@ -15,14 +23,8 @@ from exchange.chbtc import Exchange as CHBTCExchange
 from exchange.btc38 import Exchange as Btc38Exchange
 from exchange.yunbi import Exchange as YunbiExchange
 from exchange.currency import Currency, CurrencyPair
-import importlib
-import asyncio
-import logging
-import logging.config
-import yaml
-import os
 from machine import ArbitrageMachine
-import aiohttp
+from sms.ali_sms import AliSms
 
 async def error(flag):
 	if flag:
@@ -40,11 +42,17 @@ async def test(url="http://www.baidu.com"):
 logging.config.fileConfig("./logging.config")
 config = yaml.load(open(os.path.join("", 'config.yaml'), encoding='utf8'))
 
+async def test_sms():
+	smsClient = AliSms(config['sms'])
+	result = await smsClient.sendOpenOrderSms("bter", "123", 10, 1.2)
+	print(result)
+
 machine = ArbitrageMachine(config)
 loop = asyncio.get_event_loop()
 # loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
 loop.run_until_complete(machine.run(CurrencyPair.BTS_CNY))
-# loop.run_until_complete(test())
+# loop.run_until_complete(machine.sendOpenOrderWarnSms("bter", "123", 10, 1.2))
+# loop.run_until_complete(test_sms())
 # loop.run_until_complete(machine.testTransferCoin())
 # loop.run_until_complete(post_bter())
 # # loop.run_until_complete(post_chbtc())
