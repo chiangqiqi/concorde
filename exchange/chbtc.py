@@ -117,7 +117,7 @@ class Exchange(ExchangeBase):
 		return resp['id']
 
 	async def cancelOrderAsync(self, currencyPair, id):
-		logging.debug("chbtc cancel order id %d, currencyPair %s", id, currencyPair)
+		logging.debug("chbtc cancel order id %s, currencyPair %s", id, currencyPair)
 		resp =  await self.client.get('cancelOrder', {'currency': self.__currency_pair_map[currencyPair],
 											  'id': id})
 		if 'code' in resp and resp['code'] != OK_CODE:

@@ -11,7 +11,8 @@ Currency = enum(CNY = "CNY",
 				ETC = "ETC",
 				BTS = "BTS",
 				DASH = "DASH",
-				DOGE = "DOGE")
+				DOGE = "DOGE",
+				XRP = "XRP")
 
 CurrencyPair = enum(BTC_CNY = "BTC_CNY", 
 					LTC_CNY = "LTC_CNY", 
@@ -20,7 +21,8 @@ CurrencyPair = enum(BTC_CNY = "BTC_CNY",
 					ETC_CNY = "ETC_CNY",
 					BTS_CNY = "BTS_CNY",
 					DASH_CNY = "DASH_CNY",
-					DOGE_CNY = "DOGE_CNY")
+					DOGE_CNY = "DOGE_CNY",
+					XRP_CNY = "XRP_CNY")
 
 def currencyPair2Currency(currencyPair):
 	__CurrencyPair2Currency = {
@@ -32,6 +34,7 @@ def currencyPair2Currency(currencyPair):
 		CurrencyPair.BTS_CNY: Currency.BTS,
 		CurrencyPair.DASH_CNY: Currency.DASH,
 		CurrencyPair.DOGE_CNY: Currency.DOGE,
+		CurrencyPair.XRP_CNY: Currency.XRP,
 	}
 	return __CurrencyPair2Currency[currencyPair]
 

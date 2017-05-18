@@ -22,6 +22,7 @@ from exchange.bter import Exchange as BterExchange
 from exchange.chbtc import Exchange as CHBTCExchange
 from exchange.btc38 import Exchange as Btc38Exchange
 from exchange.yunbi import Exchange as YunbiExchange
+from exchange.jubi import Exchange as JubiExchange
 from exchange.currency import Currency, CurrencyPair
 from machine import ArbitrageMachine
 from sms.ali_sms import AliSms
@@ -50,12 +51,27 @@ async def test_sms():
 machine = ArbitrageMachine(config)
 loop = asyncio.get_event_loop()
 # loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
-loop.run_until_complete(machine.run(CurrencyPair.BTS_CNY))
+loop.run_until_complete(machine.run(CurrencyPair.XRP_CNY))
 # loop.run_until_complete(machine.sendOpenOrderWarnSms("bter", "123", 10, 1.2))
 # loop.run_until_complete(test_sms())
 # loop.run_until_complete(machine.testTransferCoin())
 # loop.run_until_complete(post_bter())
 # # loop.run_until_complete(post_chbtc())
+
+async def post_jubi():
+	access_key = 'bdpgz-r9vsu-46xxu-vx1p6-q62e8-j3fmj-5xxte'
+	secret_key = '*IS]q-E{Dy.-qmZq(-(3a$z-sHF[c-5^6$V-C^kaU'
+	config = {'access_key': access_key, 'secret_key': secret_key}
+	exchange = JubiExchange(config)
+	# result = await exchange.getAccountInfo()
+	# result = await exchange.getQuotes(currencyPair = CurrencyPair.XRP_CNY)
+	# result = await exchange.buyAsync(currencyPair = CurrencyPair.XRP_CNY, amount = 100, price = 0.1)
+	# result = await exchange.sellAsync(currencyPair = CurrencyPair.XRP_CNY, amount = 4, price = 100)
+	result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.XRP_CNY, id = "7300462")
+	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.XRP_CNY, id = "7300462")
+	# result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.XRP_CNY)
+	print(result)
+
 async def post_yunbi():
 	access_key = 'gmSnwZZOiQTC4O90TozKE7JffCWxKEXxUGDOli9x'
 	secret_key = '22xL90c7ImcxabkG6WfqS8VwOB2H2K9UQkxUrfJl'
@@ -331,5 +347,6 @@ def run():
 # loop.run_until_complete(post_chbtc())
 # loop.run_until_complete(post_btc38())
 # loop.run_until_complete(post_yunbi())
+# loop.run_until_complete(post_jubi())
 # # post_chbtc()
 

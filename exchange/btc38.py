@@ -121,7 +121,7 @@ class Exchange(ExchangeBase):
 		return id
 
 	async def cancelOrderAsync(self, currencyPair, id):
-		logging.debug("btc38 cancel order id %d, currencyPair %s", id, currencyPair)
+		logging.debug("btc38 cancel order id %s, currencyPair %s", id, currencyPair)
 		(c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
 		resp =  await self.client.post('cancelOrder', {'mk_type': mk_type,
 													   'order_id': id})

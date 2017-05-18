@@ -8,8 +8,8 @@ sms:
   template_code: 'SMS_67155971'
 
 arbitrage:
-  currency_pairs: ['ETC_CNY', 'BTS_CNY']
-  exchanges: ['bter', 'chbtc', 'btc38', 'yunbi']
+  currency_pairs: ['ETC_CNY', 'BTS_CNY', 'XRP_CNY']
+  exchanges: ['bter', 'chbtc', 'btc38', 'yunbi', 'jubi']
 
   check_interval_second: 1.5 #多久检查一次套利机会
   wait_order_filled_second: 10 
@@ -21,10 +21,13 @@ arbitrage:
   coin_trade_minimum: #最少交易数量
     ETC_CNY: 0.1
     BTS_CNY: 20
+    XRP_CNY: 8
+
   coin_trade_maximum: #最多交易数量
     ETC_CNY: 100
     # BTS_CNY: 110
     BTS_CNY: 10000
+    XRP_CNY: 10000
 
   BTS_CNY:
     arbitrage_exchanges: ['bter', 'yunbi']
@@ -65,6 +68,25 @@ arbitrage:
     exchange_withdraw_memo:
       yunbi: ''
 
+  XRP_CNY:
+    arbitrage_exchanges: ['jubi', 'btc38']
+    allow_slippage_perc: 0.0007
+
+    #using_withdraw 为True时，算收益要去掉提现手续费（币跟现金）
+    using_withdraw: False
+    withdraw_perc: 0.9
+    withdraw_minimum: 100
+
+    #只有当using_withdraw为True时，exchange_withdraw_permission才生效
+    exchange_withdraw_permission:
+      btc38: False
+      bter: False
+      yunbi: False
+
+    # bts比较特殊，需要memo才能确保成功
+    exchange_withdraw_memo:
+      yunbi: ''
+
 exchange:
   - name: bter
     access_key: '24F6B6F0-E43C-482F-9BE3-F135F40BBFF8'
@@ -87,6 +109,11 @@ exchange:
   - name: yunbi
     access_key: 'gmSnwZZOiQTC4O90TozKE7JffCWxKEXxUGDOli9x'
     secret_key: '22xL90c7ImcxabkG6WfqS8VwOB2H2K9UQkxUrfJl'
+    max_order_retry: 5
+    max_cancel_order_retry: 5
+  - name: jubi
+    access_key: 'bdpgz-r9vsu-46xxu-vx1p6-q62e8-j3fmj-5xxte'
+    secret_key: '*IS]q-E{Dy.-qmZq(-(3a$z-sHF[c-5^6$V-C^kaU'
     max_order_retry: 5
     max_cancel_order_retry: 5
 

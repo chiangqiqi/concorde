@@ -113,7 +113,7 @@ class Exchange(ExchangeBase):
 		return resp['orderNumber']
 
 	async def cancelOrderAsync(self, currencyPair, id):
-		logging.debug("bter cancel order id %d, currencyPair %s", id, currencyPair)
+		logging.debug("bter cancel order id %s, currencyPair %s", id, currencyPair)
 		resp =  await self.client.post(get_api_path('cancelOrder'), {'currencyPair': self.__currency_pair_map[currencyPair],
 										  'orderNumber': id})
 		if str(resp['result']).lower() != 'true':
