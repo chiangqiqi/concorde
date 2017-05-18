@@ -13,11 +13,13 @@ import aiohttp
 
 BTC38TradeFee = {
 	CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+	CurrencyPair.XRP_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 }
 
 BTC38WithdrawFee = {
-	Currency.CNY: Fee(0.01, Fee.FeeTypes.MIX, mix_fee2 = 1),
+	Currency.CNY: Fee(0.01, Fee.FeeTypes.PERC),
 	Currency.BTS: Fee(0.01, Fee.FeeTypes.MIX, mix_fee2 = 1),
+	Currency.XRP: Fee(0.01, Fee.FeeTypes.PERC),
 }
 
 
@@ -28,11 +30,13 @@ class Exchange(ExchangeBase):
 		Currency.BTC: "btc",
 		Currency.LTC: "ltc",
 		Currency.BTS: "bts",
+		Currency.XRP: "xrp",
 	}
 	__currency_pair_map = {
 		CurrencyPair.BTC_CNY: "btc_cny",
 		CurrencyPair.LTC_CNY: "ltc_cny",
 		CurrencyPair.BTS_CNY: "bts_cny",
+		CurrencyPair.XRP_CNY: "xrp_cny",
 	}
 
 	__trade_type_buy = 1
