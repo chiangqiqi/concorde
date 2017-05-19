@@ -63,9 +63,9 @@ async def post_jubi():
 	secret_key = '*IS]q-E{Dy.-qmZq(-(3a$z-sHF[c-5^6$V-C^kaU'
 	config = {'access_key': access_key, 'secret_key': secret_key}
 	exchange = JubiExchange(config)
-	# result = await exchange.getAccountInfo()
-	result = await exchange.getQuotes(currencyPair = CurrencyPair.XRP_CNY)
-	# result = await exchange.buyAsync(currencyPair = CurrencyPair.XRP_CNY, amount = 100, price = 0.1)
+	result = await exchange.getAccountInfo()
+	# result = await exchange.getQuotes(currencyPair = CurrencyPair.XRP_CNY)
+	result = await exchange.buyAsync(currencyPair = CurrencyPair.XRP_CNY, amount = 100, price = 0.1)
 	# result = await exchange.sellAsync(currencyPair = CurrencyPair.XRP_CNY, amount = 4, price = 100)
 	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.XRP_CNY, id = "7300462")
 	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.XRP_CNY, id = "7300462")

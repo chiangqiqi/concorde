@@ -64,7 +64,7 @@ class Auth():
     def sign_params(self, params=None):
         if params is None:
             params = {}
-        tonce = int(time.time())
+        tonce = int(time.time()*1000)
         params.update({'nonce': tonce, 'key': self.access_key})
         query = self.urlencode(params)
         logging.debug("jubi msg for encode: %s", query)
