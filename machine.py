@@ -104,6 +104,9 @@ class ArbitrageMachine(object):
 		end_time = time.time() + waitOrderFilledSecond
 		while time.time() < end_time:
 			order = await self.exchanges[exchangeName].getOrderAsync(currencyPair, id)
+			# 特殊逻辑，BTC38对于已经完成的订单是查不到的
+			if order is None:
+				return OrderState.FILLED
 			state = order.state
 			if order.state == OrderState.FILLED or order.state == OrderState.CANCELLED:
 				break

@@ -165,6 +165,8 @@ class Exchange(ExchangeBase):
 
 	async def getOrderAsync(self, currencyPair, id):
 		orders = await self.getOpenOrdersAsync(currencyPair)
+		if len(orders) <= 0:
+			return None
 		return filter(lambda x: x.id == id, orders).__next__()
 		# raise NotImplementedError("btc38 do not have getOrderAsync api")
 
