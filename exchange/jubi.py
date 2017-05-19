@@ -7,6 +7,7 @@ from .exchange import ExchangeBase, Fee
 from .quotes import Quotes, OrderBookItem
 from .exception import *
 import logging
+import math
 
 JUBITradeFee = {
 	CurrencyPair.XRP_CNY: Fee(0.001, Fee.FeeTypes.PERC),
@@ -45,6 +46,11 @@ class Exchange(ExchangeBase):
 	def __init__(self, config):
 		super().__init__(config)
 		self.client = Client(config['access_key'], config['secret_key'])
+
+
+	def _floor(self, num, precision = 4):
+		multiplier = math.pow(10.0, precision)
+		return math.floor(num * multiplier) / multiplier
 
 	def calculateTradeFee(self, currencyPair, amount, price):
 		return JUBITradeFee[currencyPair].calculate_fee(amount * price)
@@ -92,8 +98,8 @@ class Exchange(ExchangeBase):
 	async def buyAsync(self, currencyPair, amount, price):
 		logging.debug("jubi buy %s, amount %s, price %s", currencyPair, amount, price)
 		resp =  await self.client.post('order', {'coin': self.__currency_pair_map[currencyPair],
-											   'amount': amount,
-											   'price': price,
+											   'amount': self._floor(amount, 4),
+											   'price': self._floor(price, 4),
 											   'type': self.__trade_type_buy})
 		if 'result' in resp and resp['result'] is False:
 			raise ApiErrorException(resp['code'], str(resp))
@@ -102,8 +108,8 @@ class Exchange(ExchangeBase):
 	async def sellAsync(self, currencyPair, amount, price):
 		logging.debug("jubi sell %s, amount %s, price %s", currencyPair, amount, price)
 		resp =  await self.client.post('order', {'coin': self.__currency_pair_map[currencyPair],
-											   'amount': amount,
-											   'price': price,
+											   'amount': self._floor(amount, 4),
+											   'price': self._floor(price, 4),
 											   'type': self.__trade_type_sell})
 		if 'result' in resp and resp['result'] is False:
 			raise ApiErrorException(resp['code'], str(resp))
