@@ -218,6 +218,7 @@ class ArbitrageMachine(object):
 			if buyOrderId != ORDER_ID_FILLED_IMMEDIATELY:
 				cancelSucess = await self.cancelOrderWithRetry(currencyPair, buyExchangeName, buyOrderId, buyMaxCancelOrderRetry)
 			#TODO: 报警，有open orders存在
+			await self.sendOpenOrderWarnSms(sellExchangeName, "failed", sellAmount, sellPrice)
 			#流水日志
 			water = {"time": datetime.now(),
 					 "buyExchange": buyExchangeName,
@@ -239,6 +240,7 @@ class ArbitrageMachine(object):
 			if buyOrderId != ORDER_ID_FILLED_IMMEDIATELY: 
 				cancelSucess = await self.cancelOrderWithRetry(currencyPair, sellExchangeName, sellOrderId, sellMaxCancelOrderRetry)
 			#TODO: 报警，有open orders存在
+			await self.sendOpenOrderWarnSms(buyExchangeName, "failed", buyAmount, buyPrice)
 			#流水日志
 			water = {"time": datetime.now(),
 					 "buyExchange": buyExchangeName,

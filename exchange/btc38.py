@@ -95,7 +95,7 @@ class Exchange(ExchangeBase):
 		(c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
 		resp =  await self.client.post('order', {'coinname': c,
 												'mk_type': mk_type,
-												'amount': amount,
+												'amount': self._floor(amount,4),
 												'price': self._floor(price,4),
 												'type': self.__trade_type_buy})
 		retAndId = resp.split('|')
@@ -112,7 +112,7 @@ class Exchange(ExchangeBase):
 		(c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
 		resp =  await self.client.post('order', {'coinname': c,
 												'mk_type': mk_type,
-												'amount': amount,
+												'amount': self._floor(amount,4),
 												'price': self._floor(price,4),
 												'type': self.__trade_type_sell})
 		retAndId = resp.split('|')
