@@ -51,7 +51,7 @@ async def test_sms():
 machine = ArbitrageMachine(config)
 loop = asyncio.get_event_loop()
 # loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
-loop.run_until_complete(machine.run(CurrencyPair.XRP_CNY))
+# loop.run_until_complete(machine.run(CurrencyPair.XRP_CNY))
 # loop.run_until_complete(machine.sendOpenOrderWarnSms("bter", "123", 10, 1.2))
 # loop.run_until_complete(test_sms())
 # loop.run_until_complete(machine.testTransferCoin())
@@ -63,10 +63,10 @@ async def post_jubi():
 	secret_key = '*IS]q-E{Dy.-qmZq(-(3a$z-sHF[c-5^6$V-C^kaU'
 	config = {'access_key': access_key, 'secret_key': secret_key}
 	exchange = JubiExchange(config)
-	result = await exchange.getAccountInfo()
-	# result = await exchange.getQuotes(currencyPair = CurrencyPair.XRP_CNY)
+	# result = await exchange.getAccountInfo()
+	result = await exchange.getQuotes(currencyPair = CurrencyPair.XRP_CNY)
 	# result = await exchange.buyAsync(currencyPair = CurrencyPair.XRP_CNY, amount = 100.1111111, price = 0.4216939999999999)
-	result = await exchange.sellAsync(currencyPair = CurrencyPair.XRP_CNY, amount = 4, price = 100.999999999999)
+	# result = await exchange.sellAsync(currencyPair = CurrencyPair.XRP_CNY, amount = 4, price = 100.999999999999)
 	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.XRP_CNY, id = "7300462")
 	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.XRP_CNY, id = "7300462")
 	# result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.XRP_CNY)
@@ -347,6 +347,6 @@ def run():
 # loop.run_until_complete(post_chbtc())
 # loop.run_until_complete(post_btc38())
 # loop.run_until_complete(post_yunbi())
-# loop.run_until_complete(post_jubi())
+loop.run_until_complete(post_jubi())
 # # post_chbtc()
 
