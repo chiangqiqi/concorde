@@ -82,8 +82,10 @@ class Client():
         signature, query = self.auth.sign_params(params)
         url = "%s%s?%s&md5=%s" % (BASE_URL, path, query, signature)
         logging.debug("btc38 client get url: %s", url)
+        header = {'Content-Type': 'application/x-www-form-urlencoded',
+                  'User-Agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36"}
         async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout = 20) as resp:
+                async with session.get(url, headers = header, timeout = 20) as resp:
                     resp_text = await resp.text()
                     logging.debug("btc38 resp: %s", resp_text)
                     try:
@@ -97,7 +99,8 @@ class Client():
         signature, query = self.auth.sign_params(params)
         url = "%s%s" % (BASE_URL, path)
         data = "%s&md5=%s" % (query, signature)
-        header = {'KEY': self.auth.access_key, 'SIGN': signature, 'Content-Type': 'application/x-www-form-urlencoded'}
+        header = {'Content-Type': 'application/x-www-form-urlencoded',
+                  'User-Agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36"}
         logging.debug("btc38 client post url: %s, data: %s, header: %s", url, data, header)
         async with aiohttp.ClientSession() as session:
                 async with session.post(url, data = data.encode("utf8"), headers = header, timeout = 20) as resp:

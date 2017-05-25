@@ -51,7 +51,7 @@ async def test_sms():
 machine = ArbitrageMachine(config)
 loop = asyncio.get_event_loop()
 # loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
-# loop.run_until_complete(machine.run(CurrencyPair.XRP_CNY))
+loop.run_until_complete(machine.run(CurrencyPair.XRP_CNY))
 # loop.run_until_complete(machine.sendOpenOrderWarnSms("bter", "123", 10, 1.2))
 # loop.run_until_complete(test_sms())
 # loop.run_until_complete(machine.testTransferCoin())
@@ -103,13 +103,13 @@ async def post_btc38():
 	user_id = "195563"
 	config = {'access_key': access_key, 'secret_key': secret_key, 'user_id': user_id}
 	exchange = Btc38Exchange(config)
-	# result = await exchange.getAccountInfo()
+	result = await exchange.getAccountInfo()
 	# result = await exchange.getCashAsync()
 	# result = await exchange.getMultipleCurrencyAmountAsync(Currency.ETC, Currency.CNY)
 	# result = await exchange.getCurrencyAddressAsync(Currency.ETC)
 	# result = await exchange.buyAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 100.926000, price = 0.017012)
 	# result = await exchange.sellAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 10, price = 100.0)
-	result = await exchange.getOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "356010591")
+	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "356010591")
 	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "355322269")
 	# result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.BTS_CNY)
 	# result = await exchange.getQuotes(currencyPair = CurrencyPair.BTC_CNY)
@@ -347,6 +347,6 @@ def run():
 # loop.run_until_complete(post_chbtc())
 # loop.run_until_complete(post_btc38())
 # loop.run_until_complete(post_yunbi())
-loop.run_until_complete(post_jubi())
+# loop.run_until_complete(post_jubi())
 # # post_chbtc()
 
