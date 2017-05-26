@@ -101,7 +101,7 @@ class Exchange(ExchangeBase):
 		logging.debug("jubi buy %s, amount %s, price %s", currencyPair, amount, price)
 		resp =  await self.client.post('order', {'coin': self.__currency_pair_map[currencyPair],
 											   'amount': self._floor(amount, 4),
-											   'price': self._floor(price, 4),
+											   'price': self._floor(price, 2),
 											   'type': self.__trade_type_buy})
 		if 'result' in resp and resp['result'] is False:
 			raise ApiErrorException(resp['code'], str(resp))
@@ -111,7 +111,7 @@ class Exchange(ExchangeBase):
 		logging.debug("jubi sell %s, amount %s, price %s", currencyPair, amount, price)
 		resp =  await self.client.post('order', {'coin': self.__currency_pair_map[currencyPair],
 											   'amount': self._floor(amount, 4),
-											   'price': self._floor(price, 4),
+											   'price': self._floor(price, 2),
 											   'type': self.__trade_type_sell})
 		if 'result' in resp and resp['result'] is False:
 			raise ApiErrorException(resp['code'], str(resp))
