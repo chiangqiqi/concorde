@@ -174,6 +174,8 @@ class ArbitrageMachine(object):
 
 			# TODO: wait order to be fill
 			logging.info("now wait orders to be filled, wait %s seconds at max.", waitSeconds)
+			# 特殊逻辑，短暂sleep 500毫秒一下，防止太快查不到订单（主要是jubi网)
+			await asyncio.sleep(0.5)
 			(buyOrderState, sellOrderState) = await asyncio.gather(
 				self.waitOrderToBeFilled(currencyPair, buyExchangeName, buyOrderId, waitSeconds),
 				self.waitOrderToBeFilled(currencyPair, sellExchangeName, sellOrderId, waitSeconds))
