@@ -90,9 +90,13 @@ class Client():
         logging.debug("bter client get url: %s", url)
         async with aiohttp.ClientSession() as session:
                 async with session.get(url, timeout = 20) as resp:
-                    resp_json =  await resp.json()
-                    logging.debug("bter client resp: %s", resp_json)
-                    return resp_json
+                    resp_text = await resp.text()
+                    logging.debug("bter resp: %s", resp_text)
+                    try:
+                        ret = json.loads(resp_text)
+                        return ret
+                    except Exception as e:
+                        return resp_text
         # req = urllib.request.Request(url, headers = header)
         # resp = urllib.request.urlopen(req)
         # data = resp.readlines()
@@ -109,9 +113,13 @@ class Client():
         logging.debug("bter client post url: %s, data: %s, header: %s", url, data, header)
         async with aiohttp.ClientSession() as session:
                 async with session.post(url, data = data.encode("utf8"), headers = header, timeout = 20) as resp:
-                    resp_json =  await resp.json()
-                    logging.debug("bter client resp: %s", resp_json)
-                    return resp_json
+                    resp_text = await resp.text()
+                    logging.debug("bter resp: %s", resp_text)
+                    try:
+                        ret = json.loads(resp_text)
+                        return ret
+                    except Exception as e:
+                        return resp_text
         # req = urllib.request.Request(url, data.encode("utf8"), headers = header)
         # resp = urllib.request.urlopen(req)
         # data = resp.readlines()

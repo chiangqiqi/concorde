@@ -50,7 +50,7 @@ arbitrage:
 
 
   ETC_CNY:
-    arbitrage_exchanges: ['chbtc', 'yunbi']
+    arbitrage_exchanges: ['chbtc', 'jubi']
     allow_slippage_perc: 0.0007
 
     #using_withdraw 为True时，算收益要去掉提现手续费（币跟现金）
