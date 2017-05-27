@@ -163,6 +163,10 @@ class Exchange(ExchangeBase):
 	async def getOrderAsync(self, currencyPair, id):
 		resp =  await self.client.post('trade_view', {'coin': self.__currency_pair_map[currencyPair],
 													 'id': id})
+		# 特殊逻辑，下单后聚币网居然可能查不到订单，暂时返回None吧
+		if 'result' in resp and resp['result'] is False and int(resp['code']) == 203:
+			return None
+			
 		if 'result' in resp and resp['result'] is False:
 			raise ApiErrorException(resp['code'], str(resp))
 

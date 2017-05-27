@@ -103,13 +103,16 @@ class ArbitrageMachine(object):
 		state = OrderState.INITIAL
 		end_time = time.time() + waitOrderFilledSecond
 		while time.time() < end_time:
-			order = await self.exchanges[exchangeName].getOrderAsync(currencyPair, id)
-			# 特殊逻辑，BTC38对于已经完成的订单是查不到的
-			if order is None:
-				return OrderState.FILLED
-			state = order.state
-			if order.state == OrderState.FILLED or order.state == OrderState.CANCELLED:
-				break
+			try:
+				order = await self.exchanges[exchangeName].getOrderAsync(currencyPair, id)
+				# 特殊逻辑，BTC38对于已经完成的订单是查不到的，还有聚币网有时居然也查不到订单
+				if order is None:
+					return OrderState.FILLED
+				state = order.state
+				if order.state == OrderState.FILLED or order.state == OrderState.CANCELLED:
+					break
+			except Exception as e:
+				logging.warn("waitOrderToBeFilled error: %s(%s, %s, %s) ", e, currencyPair, exchangeName, id)
 			await asyncio.sleep(queryOrderStateIntervalMs/1000.)
 		return state
 
