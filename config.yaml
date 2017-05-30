@@ -22,12 +22,14 @@ arbitrage:
     ETC_CNY: 0.1
     BTS_CNY: 20
     XRP_CNY: 8
+    DOGE_CNY: 1500
 
   coin_trade_maximum: #最多交易数量
     ETC_CNY: 100
     # BTS_CNY: 110
     BTS_CNY: 10000
     XRP_CNY: 10000
+    DOGE_CNY: 1000000
 
   BTS_CNY:
     arbitrage_exchanges: ['bter', 'yunbi']
