@@ -50,8 +50,9 @@ async def test_sms():
 
 machine = ArbitrageMachine(config)
 loop = asyncio.get_event_loop()
-loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
+# loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
 # loop.run_until_complete(machine.run(CurrencyPair.XRP_CNY))
+loop.run_until_complete(machine.run(CurrencyPair.DOGE_CNY))
 # loop.run_until_complete(machine.sendOpenOrderWarnSms("bter", "123", 10, 1.2))
 # loop.run_until_complete(test_sms())
 # loop.run_until_complete(machine.testTransferCoin())
