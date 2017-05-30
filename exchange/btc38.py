@@ -14,12 +14,14 @@ import aiohttp
 BTC38TradeFee = {
 	CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 	CurrencyPair.XRP_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+	CurrencyPair.DOGE_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 }
 
 BTC38WithdrawFee = {
 	Currency.CNY: Fee(0.01, Fee.FeeTypes.PERC),
 	Currency.BTS: Fee(0.01, Fee.FeeTypes.MIX, mix_fee2 = 1),
 	Currency.XRP: Fee(0.01, Fee.FeeTypes.PERC),
+	Currency.DOGE: Fee(0.01, Fee.FeeTypes.PERC),
 }
 
 

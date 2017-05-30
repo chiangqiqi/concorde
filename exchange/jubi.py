@@ -12,11 +12,13 @@ import math
 JUBITradeFee = {
 	CurrencyPair.XRP_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 	CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+	CurrencyPair.DOGE_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 }
 
 JUBIWithdrawFee = {
 	Currency.XRP: Fee(0.01, Fee.FeeTypes.PERC),
 	Currency.ETC: Fee(0.01, Fee.FeeTypes.FIX),
+	Currency.DOGE: Fee(0.01, Fee.FeeTypes.PERC),
 }
 
 
