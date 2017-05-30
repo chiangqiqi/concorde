@@ -33,12 +33,14 @@ class Exchange(ExchangeBase):
 		Currency.LTC: "ltc",
 		Currency.BTS: "bts",
 		Currency.XRP: "xrp",
+		Currency.DOGE: "doge",
 	}
 	__currency_pair_map = {
 		CurrencyPair.BTC_CNY: "btc_cny",
 		CurrencyPair.LTC_CNY: "ltc_cny",
 		CurrencyPair.BTS_CNY: "bts_cny",
 		CurrencyPair.XRP_CNY: "xrp_cny",
+		CurrencyPair.DOGE_CNY: "doge_cny",
 	}
 
 	__trade_type_buy = 1
