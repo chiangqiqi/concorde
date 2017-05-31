@@ -103,9 +103,20 @@ class Exchange(ExchangeBase):
 
 	async def buyAsync(self, currencyPair, amount, price):
 		logging.debug("jubi buy %s, amount %s, price %s", currencyPair, amount, price)
+		#特殊逻辑，每个币种的价格精确度不一样，必须调用方处理
+		floorPrice = price
+		if currencyPair == CurrencyPair.XRP_CNY:
+			floorPrice = self._floor(price, 4)
+		elif currencyPair == CurrencyPair.DOGE_CNY:
+			floorPrice = self._floor(price, 6)
+		elif currencyPair == CurrencyPair.ETC_CNY:
+			floorPrice = self._floor(price, 2)
+		else:
+			floorPrice = self._floor(price, 4)
+		logging.debug("jubi buy %s, floorPrice %s", currencyPair, floorPrice)
 		resp =  await self.client.post('order', {'coin': self.__currency_pair_map[currencyPair],
 											   'amount': self._floor(amount, 4),
-											   'price': self._floor(price, 2),
+											   'price': floorPrice,
 											   'type': self.__trade_type_buy})
 		if 'result' in resp and resp['result'] is False:
 			raise ApiErrorException(resp['code'], str(resp))
@@ -113,9 +124,20 @@ class Exchange(ExchangeBase):
 
 	async def sellAsync(self, currencyPair, amount, price):
 		logging.debug("jubi sell %s, amount %s, price %s", currencyPair, amount, price)
+		#特殊逻辑，每个币种的价格精确度不一样，必须调用方处理
+		floorPrice = price
+		if currencyPair == CurrencyPair.XRP_CNY:
+			floorPrice = self._floor(price, 4)
+		elif currencyPair == CurrencyPair.DOGE_CNY:
+			floorPrice = self._floor(price, 6)
+		elif currencyPair == CurrencyPair.ETC_CNY:
+			floorPrice = self._floor(price, 2)
+		else:
+			floorPrice = self._floor(price, 4)
+		logging.debug("jubi sell %s, floorPrice %s", currencyPair, floorPrice)
 		resp =  await self.client.post('order', {'coin': self.__currency_pair_map[currencyPair],
 											   'amount': self._floor(amount, 4),
-											   'price': self._floor(price, 2),
+											   'price': floorPrice,
 											   'type': self.__trade_type_sell})
 		if 'result' in resp and resp['result'] is False:
 			raise ApiErrorException(resp['code'], str(resp))

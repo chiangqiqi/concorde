@@ -66,10 +66,11 @@ async def post_jubi():
 	exchange = JubiExchange(config)
 	# result = await exchange.getAccountInfo()
 	# result = await exchange.getQuotes(currencyPair = CurrencyPair.XRP_CNY)
-	# result = await exchange.buyAsync(currencyPair = CurrencyPair.ETC_CNY, amount = 2.1589, price = 100.0811)
+	# result = await exchange.buyAsync(currencyPair = CurrencyPair.ETC_CNY, amount = 2.1589, price = 10.0811)
+	result = await exchange.buyAsync(currencyPair = CurrencyPair.ETC_CNY, amount = 10, price = 100.10111)
 	# result = await exchange.sellAsync(currencyPair = CurrencyPair.XRP_CNY, amount = 4, price = 100.999999999999)
 	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.XRP_CNY, id = "7300462")
-	result = await exchange.getOrderAsync(currencyPair = CurrencyPair.ETC_CNY, id = "4496777")
+	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.ETC_CNY, id = "4496777")
 	# result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.XRP_CNY)
 	print(result)
 

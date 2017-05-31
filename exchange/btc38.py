@@ -96,11 +96,20 @@ class Exchange(ExchangeBase):
 
 	async def buyAsync(self, currencyPair, amount, price):
 		logging.debug("btc38 buy %s, amount %s, price %s", currencyPair, amount, price)
+		#特殊逻辑，每个币种的价格精确度不一样，必须调用方处理
+		floorPrice = price
+		if currencyPair == CurrencyPair.XRP_CNY:
+			floorPrice = self._floor(price, 4)
+		elif currencyPair == CurrencyPair.DOGE_CNY:
+			floorPrice = self._floor(price, 5)
+		else:
+			floorPrice = self._floor(price, 4)
+		logging.debug("btc38 buy %s, floorPrice %s", currencyPair, floorPrice)
 		(c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
 		resp =  await self.client.post('order', {'coinname': c,
 												'mk_type': mk_type,
 												'amount': self._floor(amount,4),
-												'price': self._floor(price,4),
+												'price': floorPrice,
 												'type': self.__trade_type_buy})
 		retAndId = resp.split('|')
 		result = retAndId[0]
@@ -113,11 +122,20 @@ class Exchange(ExchangeBase):
 
 	async def sellAsync(self, currencyPair, amount, price):
 		logging.debug("btc38 sell %s, amount %s, price %s", currencyPair, amount, price)
+		#特殊逻辑，每个币种的价格精确度不一样，必须调用方处理
+		floorPrice = price
+		if currencyPair == CurrencyPair.XRP_CNY:
+			floorPrice = self._floor(price, 4)
+		elif currencyPair == CurrencyPair.DOGE_CNY:
+			floorPrice = self._floor(price, 5)
+		else:
+			floorPrice = self._floor(price, 4)
+		logging.debug("btc38 sell %s, floorPrice %s", currencyPair, floorPrice)
 		(c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
 		resp =  await self.client.post('order', {'coinname': c,
 												'mk_type': mk_type,
 												'amount': self._floor(amount,4),
-												'price': self._floor(price,4),
+												'price': floorPrice,
 												'type': self.__trade_type_sell})
 		retAndId = resp.split('|')
 		result = retAndId[0]
