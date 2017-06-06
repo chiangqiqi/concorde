@@ -325,6 +325,7 @@ class ArbitrageMachine(object):
 		coinTradeMinimum = self.config['arbitrage'][currencyPair]['coin_trade_minimum']
 		coinTradeMaximum = self.config['arbitrage'][currencyPair]['coin_trade_maximum']
 		allowSlippagePerc = self.config['arbitrage'][currencyPair]['allow_slippage_perc']
+		riskAlpha = self.config['arbitrage'][currencyPair]['risk_alpha']
 		usingWithdraw = self.config['arbitrage'][currencyPair]['using_withdraw']
 		withdrawPerc = self.config['arbitrage'][currencyPair].get('withdraw_perc')
 		withdrawMinimum = self.config['arbitrage'][currencyPair].get('withdraw_minimum')
@@ -421,8 +422,8 @@ class ArbitrageMachine(object):
 				if usingWithdraw:
 					alphaFlat -= withdrawCost
 				alpha = (alphaFlat) / buyValue
-				if alpha >= 0.1: #risk, 潜在风险，有可能是api返回了错误的价格信息，此时不交易
-					logging.warn("alpha %s >> 1.0, maybe risk")
+				if alpha >= riskAlpha: #risk, 潜在风险，有可能是api返回了错误的价格信息，此时不交易
+					logging.warn("alpha %s >> riskAlpha(%s), maybe risk", riskAlpha)
 					logging.warn("%s[ask %.6f(%.6f)], %s[bid %.6f(%.6f)](%s->%s)arbitrage!!!!"+
 						"buyValue=%.2f, sellValue=%.2f, tradeCost=%.2f, withdrawCost=%.2f, alphaFlat=%.2f, alpha = %f",
 						buyExchangeName, askPrice, askAmount, sellExchangeName, bidPrice, bidAmount,
@@ -487,7 +488,9 @@ class ArbitrageMachine(object):
 											askItems = exchangeAQoutes.getAsks(),
 											sellExchangeName = exchangeBName,
 											bidItems = exchangeBQoutes.getBids())
-				if not isArbitrage:
+				if isArbitrage:
+					return
+				else:
 					await self.checkEntryAndArbitrage(currencyPair = currencyPair,
 												buyExchangeName = exchangeBName,
 												askItems = exchangeBQoutes.getAsks(),
