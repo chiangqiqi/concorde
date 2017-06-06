@@ -340,17 +340,17 @@ class ArbitrageMachine(object):
 		sellExchangeCoinAmount = self.exchanges[sellExchangeName].accountInfo['balances'][currency]
 
 		#转币如果允许的话
-		transferAmount = buyExchangeCoinAmount * withdrawPerc
-		if usingWithdraw and \
-		sellExchangeCoinAmount < coinTradeMinimum and \
-		transferAmount >= withdrawMinimum and \
-		(isExchangeWithdrawAllowed is None or isExchangeWithdrawAllowed[buyExchangeName]):
-			logging.info("transfer %s %s from %s to %s", transferAmount, currency, buyExchangeName, sellExchangeName)
-			await self.transferCoin(currencyPair = currencyPair, 
-							  fromExchange = buyExchangeName, 
-							  toExchange = sellExchangeName, 
-							  amount = transferAmount)
-			return
+		if usingWithdraw:
+			transferAmount = buyExchangeCoinAmount * withdrawPerc
+			if sellExchangeCoinAmount < coinTradeMinimum and \
+			transferAmount >= withdrawMinimum and \
+			(isExchangeWithdrawAllowed is None or isExchangeWithdrawAllowed[buyExchangeName]):
+				logging.info("transfer %s %s from %s to %s", transferAmount, currency, buyExchangeName, sellExchangeName)
+				await self.transferCoin(currencyPair = currencyPair, 
+								  fromExchange = buyExchangeName, 
+								  toExchange = sellExchangeName, 
+								  amount = transferAmount)
+				return
 
 		#校验是否有足够的钱或币进行交易
 		if await self.notEnoughBalanceToTrade(currencyPair, buyExchangeName, askItems[0].price, sellExchangeName):
