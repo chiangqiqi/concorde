@@ -357,7 +357,7 @@ class ArbitrageMachine(object):
 			return False
 		
 		#决定套利收获
-		gainTarget = self.determineGainTarget(buyExchangeCoinAmount, sellExchangeCoinAmount)
+		gainTarget = self.determineGainTarget(currencyPair, buyExchangeCoinAmount, sellExchangeCoinAmount)
 
 		#判断是否能够套利
 		for bidItem in bidItems:
