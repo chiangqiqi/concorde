@@ -15,6 +15,7 @@ import yaml
 import os
 import aiohttp
 
+from finance.currency import Currency, CurrencyPair
 from lib.yunbi.client import Client, get_api_path
 from lib.bter.client import Client as BterClient
 from lib.chbtc.client import Client as ChbtcClient
@@ -23,7 +24,6 @@ from exchange.chbtc import Exchange as CHBTCExchange
 from exchange.btc38 import Exchange as Btc38Exchange
 from exchange.yunbi import Exchange as YunbiExchange
 from exchange.jubi import Exchange as JubiExchange
-from exchange.currency import Currency, CurrencyPair
 from machine import ArbitrageMachine
 from sms.ali_sms import AliSms
 
@@ -50,9 +50,9 @@ async def test_sms():
 
 machine = ArbitrageMachine(config)
 loop = asyncio.get_event_loop()
-# loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
+loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
 # loop.run_until_complete(machine.run(CurrencyPair.XRP_CNY))
-loop.run_until_complete(machine.run(CurrencyPair.DOGE_CNY))
+# loop.run_until_complete(machine.run(CurrencyPair.DOGE_CNY))
 # loop.run_until_complete(machine.sendOpenOrderWarnSms("bter", "123", 10, 1.2))
 # loop.run_until_complete(test_sms())
 # loop.run_until_complete(machine.testTransferCoin())

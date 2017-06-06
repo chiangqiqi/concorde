@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from lib.chbtc.client import Client as Client
-from .currency import Currency, CurrencyPair
-from .order import OrderState, OrderDirection, Order
+from finance.currency import Currency, CurrencyPair
+from finance.order import OrderState, OrderDirection, Order, ORDER_ID_FILLED_IMMEDIATELY
+from finance.quotes import Quotes, OrderBookItem
 from .exchange import ExchangeBase, Fee
-from .quotes import Quotes, OrderBookItem
 from .exception import *
 import logging
 

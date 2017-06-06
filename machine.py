@@ -13,10 +13,8 @@ import asyncio
 import logging
 import logging.config
 
-# from exchange.bter import Exchange as BterExchange
-# from exchange.chbtc import Exchange as CHBTCExchange
-from exchange.currency import Currency, CurrencyPair, currencyPair2Currency
-from exchange.order import OrderState, ORDER_ID_FILLED_IMMEDIATELY
+from finance.currency import Currency, CurrencyPair, currencyPair2Currency
+from finance.order import OrderState, ORDER_ID_FILLED_IMMEDIATELY
 from sms.ali_sms import AliSms
 
 waterLogger = logging.getLogger("water")
@@ -34,14 +32,12 @@ class ArbitrageMachine(object):
 			e = importlib.import_module("exchange.%s"%exch).Exchange(exchConfig)
 			self.exchanges.update({exch: e})
 
-	# async def checkEntry(buyExchangeName, )
-	
-	def determineGainTarget(self, buyExchangeCoinAmount, sellExchangeCoinAmount):
-		balanceRatio = self.config['arbitrage']['balance_ratio']
+	def determineGainTarget(self, currencyPair, buyExchangeCoinAmount, sellExchangeCoinAmount):
+		balanceRatio = self.config['arbitrage'][currencyPair]['balance_ratio']
 		if buyExchangeCoinAmount / sellExchangeCoinAmount < balanceRatio:
-			return self.config['arbitrage']['balance_target_gain']
+			return self.config['arbitrage'][currencyPair]['balance_target_gain']
 		else:
-			return self.config['arbitrage']['arbitrage_target_gain']
+			return self.config['arbitrage'][currencyPair]['arbitrage_target_gain']
 
 	def _floor(self, num, precision = 3):
 		multiplier = math.pow(10.0, precision)
@@ -268,7 +264,7 @@ class ArbitrageMachine(object):
 
 	async def notEnoughBalanceToTrade(self, currencyPair, buyExchangeName, buyPrice, sellExchangeName):
 		currency = currencyPair2Currency(currencyPair)
-		coinTradeMinimum = self.config['arbitrage']['coin_trade_minimum'][currencyPair]
+		coinTradeMinimum = self.config['arbitrage'][currencyPair]['coin_trade_minimum']
 
 		#获取余额
 		buyExchangeCash = self.exchanges[buyExchangeName].accountInfo['balances'][Currency.CNY]
@@ -325,14 +321,14 @@ class ArbitrageMachine(object):
 									bidItems):
 		currency = currencyPair2Currency(currencyPair)
 		#config
-		balanceRatio = self.config['arbitrage']['balance_ratio']
-		coinTradeMinimum = self.config['arbitrage']['coin_trade_minimum'][currencyPair]
-		coinTradeMaximum = self.config['arbitrage']['coin_trade_maximum'][currencyPair]
+		balanceRatio = self.config['arbitrage'][currencyPair]['balance_ratio']
+		coinTradeMinimum = self.config['arbitrage'][currencyPair]['coin_trade_minimum']
+		coinTradeMaximum = self.config['arbitrage'][currencyPair]['coin_trade_maximum']
 		allowSlippagePerc = self.config['arbitrage'][currencyPair]['allow_slippage_perc']
 		usingWithdraw = self.config['arbitrage'][currencyPair]['using_withdraw']
-		withdrawPerc = self.config['arbitrage'][currencyPair]['withdraw_perc']
-		withdrawMinimum = self.config['arbitrage'][currencyPair]['withdraw_minimum']
-		isExchangeWithdrawAllowed = self.config['arbitrage'][currencyPair]['exchange_withdraw_permission']
+		withdrawPerc = self.config['arbitrage'][currencyPair].get('withdraw_perc')
+		withdrawMinimum = self.config['arbitrage'][currencyPair].get('withdraw_minimum')
+		isExchangeWithdrawAllowed = self.config['arbitrage'][currencyPair].get('exchange_withdraw_permission')
 		logging.debug("usingWithdraw %s, withdrawPerc %s, withdrawMinimum %s, isExchangeWithdrawAllowed %s", 
 			usingWithdraw, withdrawPerc, withdrawMinimum, isExchangeWithdrawAllowed)
 
@@ -347,7 +343,7 @@ class ArbitrageMachine(object):
 		if usingWithdraw and \
 		sellExchangeCoinAmount < coinTradeMinimum and \
 		transferAmount >= withdrawMinimum and \
-		isExchangeWithdrawAllowed[buyExchangeName]:
+		(isExchangeWithdrawAllowed is None or isExchangeWithdrawAllowed[buyExchangeName]):
 			logging.info("transfer %s %s from %s to %s", transferAmount, currency, buyExchangeName, sellExchangeName)
 			await self.transferCoin(currencyPair = currencyPair, 
 							  fromExchange = buyExchangeName, 
