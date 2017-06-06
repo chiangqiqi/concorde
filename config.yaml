@@ -53,7 +53,7 @@ arbitrage:
 
 
   ETC_CNY:
-    arbitrage_exchanges: [jubi', 'chbtc', 'bter']
+    arbitrage_exchanges: ['jubi', 'chbtc', 'bter']
     allow_slippage_perc: 0.0007
     arbitrage_target_gain: 0.004
     balance_target_gain: 0.0005
