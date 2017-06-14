@@ -1,5 +1,5 @@
 sms:
-  notify_phonenum: "15002029322"
+  notify_phonenum: "13071122875"
   api_url: 'http://sms.market.alicloudapi.com/singleSendSms'
   app_key: '23814070'
   app_secret: 'ff12790b50fc880f083e8520d6086af5'
@@ -16,21 +16,21 @@ db:
       trade: "trades"
 
 arbitrage:
-  currency_pairs: ['ETC_CNY', 'BTS_CNY', 'XRP_CNY', 'DOGE_CNY']
-  exchanges: ['bter', 'chbtc', 'btc38', 'yunbi', 'jubi']
+  currency_pairs: ['ETC_CNY', 'BTS_CNY']
+  exchanges: ['chbtc', 'yunbi', 'jubi']
 
-  check_interval_second: 1.5 #多久检查一次套利机会
+  check_interval_second: 1.05 #多久检查一次套利机会
   wait_order_filled_second: 10 
   query_order_state_interval_ms: 500
 
   BTS_CNY:
-    arbitrage_exchanges: ['bter', 'yunbi']
+    arbitrage_exchanges: ['chbtc', 'jubi', 'yunbi']
     allow_slippage_perc: 0.001
     arbitrage_target_gain: 0.005
     balance_target_gain: 0.001
     balance_ratio: 0.1 #买币方币数/卖币方币数 < balance_ratio时，按照balance_target_gain算套利机会，否则用arbitrage_target_gain
-    coin_trade_minimum: 20 #最少交易数量
-    coin_trade_maximum: 20000 #最多交易数量
+    coin_trade_minimum: 5 #最少交易数量
+    coin_trade_maximum: 500 #最多交易数量
     #风险控制，当alpha超过risk_alpha时不交易，主要是bter交易所，因为该交易所有可能返回其他币种的qoute，导致alpha异常大，但是是错的。
     risk_alpha: 0.1
 
@@ -53,74 +53,34 @@ arbitrage:
 
 
   ETC_CNY:
-    arbitrage_exchanges: ['jubi', 'chbtc', 'bter']
+    arbitrage_exchanges: ['jubi', 'yunbi']
     allow_slippage_perc: 0.0007
     arbitrage_target_gain: 0.004
     balance_target_gain: 0.0005
     balance_ratio: 0.1 #买币方币数/卖币方币数 < balance_ratio时，按照balance_target_gain算套利机会，否则用arbitrage_target_gain
     coin_trade_minimum: 0.1 #最少交易数量
-    coin_trade_maximum: 100 #最多交易数量
+    coin_trade_maximum: 10 #最多交易数量
     #风险控制，当alpha超过risk_alpha时不交易，主要是bter交易所，因为该交易所有可能返回其他币种的qoute，导致alpha异常大，但是是错的。
     risk_alpha: 0.1
 
     #using_withdraw 为True时，算收益要去掉提现手续费（币跟现金）
     using_withdraw: False
 
-  XRP_CNY:
-    arbitrage_exchanges: ['jubi', 'btc38']
-    allow_slippage_perc: 0.0007
-    arbitrage_target_gain: 0.005
-    balance_target_gain: 0.0005
-    balance_ratio: 0.1 #买币方币数/卖币方币数 < balance_ratio时，按照balance_target_gain算套利机会，否则用arbitrage_target_gain
-    coin_trade_minimum: 10 #最少交易数量
-    coin_trade_maximum: 10000 #最多交易数量
-    #风险控制，当alpha超过risk_alpha时不交易，主要是bter交易所，因为该交易所有可能返回其他币种的qoute，导致alpha异常大，但是是错的。
-    risk_alpha: 1.0
-
-    #using_withdraw 为True时，算收益要去掉提现手续费（币跟现金）
-    using_withdraw: False
-
-  DOGE_CNY:
-    arbitrage_exchanges: ['jubi', 'btc38']
-    allow_slippage_perc: 0.0007
-    arbitrage_target_gain: 0.005
-    balance_target_gain: 0.0005
-    balance_ratio: 0.1 #买币方币数/卖币方币数 < balance_ratio时，按照balance_target_gain算套利机会，否则用arbitrage_target_gain
-    coin_trade_minimum: 2000 #最少交易数量
-    coin_trade_maximum: 1000000 #最多交易数量
-    #风险控制，当alpha超过risk_alpha时不交易，主要是bter交易所，因为该交易所有可能返回其他币种的qoute，导致alpha异常大，但是是错的。
-    risk_alpha: 1.0
-
-    #using_withdraw 为True时，算收益要去掉提现手续费（币跟现金）
-    using_withdraw: False
 
 exchange:
-  - name: bter
-    access_key: '24F6B6F0-E43C-482F-9BE3-F135F40BBFF8'
-    secret_key: '92283cf7bc98afceefdc449359670ad1c6d70238ca202db6c1f34637a29f82e4'
-    max_order_retry: 5
-    max_cancel_order_retry: 5
   - name: chbtc
-    access_key: 'a9e1f09e-1459-44df-8aea-024d97c37487'
-    secret_key: '4086a247-092a-4893-ac4c-62c2f6ee6242'
-    max_order_retry: 5
-    max_cancel_order_retry: 5
-  - name: btc38
-    access_key: '498c1b144488bf99ff7eee444a5db618'
-    secret_key: 'b93381bc0c6a88606fe7522ad0a4f51ac36fdc1a29446927b0f4ab615d4796c5'
-    user_id: "195563"
-    withdraw_proxy_url: "http://127.0.0.1:10010/bter/withdraw"
-    rk_withdraw_secret_key: 'dc449359670ad1c6d70238ca202db6c1f34637a29f82e4' #必须跟proxy brower的key配置一致
+    access_key: '0b15eb2a-d751-41e7-bbfd-79ae5a58c525'
+    secret_key: '0d3f9560-65ac-413d-b962-7b6427963ee7'
     max_order_retry: 5
     max_cancel_order_retry: 5
   - name: yunbi
-    access_key: 'gmSnwZZOiQTC4O90TozKE7JffCWxKEXxUGDOli9x'
-    secret_key: '22xL90c7ImcxabkG6WfqS8VwOB2H2K9UQkxUrfJl'
+    access_key: 'Be8PSKRBfjwxHpqQG1Mzsi7fxDFSiuPxXZah6KWt'
+    secret_key: 'oh3CvTwKs8w5FdXj7zdzsQMcqXN3rwqfDehkR676'
     max_order_retry: 5
     max_cancel_order_retry: 5
   - name: jubi
-    access_key: 'bdpgz-r9vsu-46xxu-vx1p6-q62e8-j3fmj-5xxte'
-    secret_key: '*IS]q-E{Dy.-qmZq(-(3a$z-sHF[c-5^6$V-C^kaU'
+    access_key: '3pa1s-bjq5a-ebp8n-c854n-tgdvh-dngxm-b1am2'
+    secret_key: '6)N;7-^gxLA-4&Se2-s!FV,-~8BB3-6]5vz-8BwUj'
     max_order_retry: 5
     max_cancel_order_retry: 5
 

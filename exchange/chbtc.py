@@ -10,6 +10,7 @@ import logging
 
 CHBTCTradeFee = {
 	CurrencyPair.ETC_CNY: Fee(0.0005, Fee.FeeTypes.PERC),
+        CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 }
 
 CHBTCWithdrawFee = {
@@ -25,12 +26,14 @@ class Exchange(ExchangeBase):
 		Currency.LTC: "ltc",
 		Currency.ETC: "etc",
 		Currency.ETH: "eth",
+        Currency.BTS: "BTS"
 	}
 	__currency_pair_map = {
 		CurrencyPair.BTC_CNY: "btc_cny",
 		CurrencyPair.LTC_CNY: "ltc_cny",
 		CurrencyPair.ETC_CNY: "etc_cny",
 		CurrencyPair.ETH_CNY: "eth_cny",
+        CurrencyPair.BTS_CNY: "bts_cny"
 	}
 
 	__trade_type_buy = 1

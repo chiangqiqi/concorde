@@ -50,7 +50,8 @@ async def test_sms():
 
 machine = ArbitrageMachine(config)
 loop = asyncio.get_event_loop()
-loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
+loop.run_until_complete(machine.run(CurrencyPair.BTS_CNY))
+# loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
 # loop.run_until_complete(machine.run(CurrencyPair.XRP_CNY))
 # loop.run_until_complete(machine.run(CurrencyPair.DOGE_CNY))
 # loop.run_until_complete(machine.sendOpenOrderWarnSms("bter", "123", 10, 1.2))
@@ -59,114 +60,8 @@ loop.run_until_complete(machine.run(CurrencyPair.ETC_CNY))
 # loop.run_until_complete(post_bter())
 # # loop.run_until_complete(post_chbtc())
 
-async def post_jubi():
-	access_key = 'bdpgz-r9vsu-46xxu-vx1p6-q62e8-j3fmj-5xxte'
-	secret_key = '*IS]q-E{Dy.-qmZq(-(3a$z-sHF[c-5^6$V-C^kaU'
-	config = {'access_key': access_key, 'secret_key': secret_key}
-	exchange = JubiExchange(config)
-	# result = await exchange.getAccountInfo()
-	# result = await exchange.getQuotes(currencyPair = CurrencyPair.XRP_CNY)
-	# result = await exchange.buyAsync(currencyPair = CurrencyPair.ETC_CNY, amount = 2.1589, price = 10.0811)
-	result = await exchange.buyAsync(currencyPair = CurrencyPair.ETC_CNY, amount = 10, price = 100.10111)
-	# result = await exchange.sellAsync(currencyPair = CurrencyPair.XRP_CNY, amount = 4, price = 100.999999999999)
-	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.XRP_CNY, id = "7300462")
-	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.ETC_CNY, id = "4496777")
-	# result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.XRP_CNY)
-	print(result)
 
-async def post_yunbi():
-	access_key = 'gmSnwZZOiQTC4O90TozKE7JffCWxKEXxUGDOli9x'
-	secret_key = '22xL90c7ImcxabkG6WfqS8VwOB2H2K9UQkxUrfJl'
-	config = {'access_key': access_key, 'secret_key': secret_key}
-	exchange = YunbiExchange(config)
-	# result = await exchange.getAccountInfo()
-	# result = await exchange.getCashAsync()
-	# result = await exchange.getCurrencyAmountAsync(Currency.ETC)
-	result = await exchange.getCurrencyAddressAsync(Currency.BTS)
-	# result = await exchange.buyAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 100, price = 0.01)
-	# result = await exchange.sellAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 10.0, price = 100.0)
-	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "422406658")
-	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "422130692")
-	# result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.BTS_CNY)
-	# result = await exchange.getQuotes(currencyPair = CurrencyPair.BTC_CNY)
-	print(result)
-	# balances =  client.get('withdraw', {'currency': 'etc', 'amount': 0.12, 'safePwd': "danxiarongkai520", 'fees': 0.01, 'receiveAddr': '0xc4b177e97e448e183c31817fe3548b358709d5d0'})
-	# balances =  client.post(client.get_api_path('deposite_address'), {'currency': 'bts'})
-	# print(client.get(get_api_path('depth'), {'market': 'zeccny', 'limit': 10}))
-
-
-async def slow_operation(n):
-    await asyncio.sleep(1)
-    print("Slow operation {} complete".format(n))
-
-async def post_btc38():
-	access_key = '498c1b144488bf99ff7eee444a5db618'
-	secret_key = 'b93381bc0c6a88606fe7522ad0a4f51ac36fdc1a29446927b0f4ab615d4796c5'
-	user_id = "195563"
-	config = {'access_key': access_key, 'secret_key': secret_key, 'user_id': user_id}
-	exchange = Btc38Exchange(config)
-	result = await exchange.getAccountInfo()
-	# result = await exchange.getCashAsync()
-	# result = await exchange.getMultipleCurrencyAmountAsync(Currency.ETC, Currency.CNY)
-	# result = await exchange.getCurrencyAddressAsync(Currency.ETC)
-	# result = await exchange.buyAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 100.926000, price = 0.017012)
-	# result = await exchange.sellAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 10, price = 100.0)
-	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "356010591")
-	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "355322269")
-	# result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.BTS_CNY)
-	# result = await exchange.getQuotes(currencyPair = CurrencyPair.BTC_CNY)
-	print(result)
-	# balances =  client.get('withdraw', {'currency': 'etc', 'amount': 0.12, 'safePwd': "danxiarongkai520", 'fees': 0.01, 'receiveAddr': '0xc4b177e97e448e183c31817fe3548b358709d5d0'})
-	# balances =  client.post(client.get_api_path('deposite_address'), {'currency': 'bts'})
-	# print(client.get(get_api_path('depth'), {'market': 'zeccny', 'limit': 10}))
-
-async def post_bter():
-	access_key = '24F6B6F0-E43C-482F-9BE3-F135F40BBFF8'
-	secret_key = '92283cf7bc98afceefdc449359670ad1c6d70238ca202db6c1f34637a29f82e4'
-	config = {'access_key': access_key, 'secret_key': secret_key}
-	exchange = BterExchange(config)
-	result = await exchange.getAccountInfo()
-	# result = await exchange.getMultipleCurrencyAmountAsync(Currency.ETC, Currency.CNY)
-	# result = await exchange.getCurrencyAmountAsync(Currency.ETC)
-	# address = await exchange.getCurrencyAddressAsync(Currency.ETC)
-	# result = await exchange.buyAsync(currencyPair = CurrencyPair.ETC_CNY, amount = 0.2, price = 1.0)
-	# result = await exchange.sellAsync(currencyPair = CurrencyPair.BTS_CNY, amount = 20, price = 0.6301)
-	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.ETC_CNY, id = "151188973")
-	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.BTS_CNY, id = "993")
-	# result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.ETC_CNY)
-	# result = await exchange.getQuotes(currencyPair = CurrencyPair.ETC_CNY)
-	print(result)
-	# result = await exchange.getAccountInfo()
-	# print(result)
-	# client = BterClient(access_key=access_key, secret_key=secret_key)
-	# balances =  client.post('balances')
-	# balances =  client.post(client.get_api_path('withdraw'), {'currency': 'etc', 'amount': 0.1, 'address': '0xad481493a16a40d06b9e56a3efca8c9270204626'}) #yunbi
-	# balances =  client.post(client.get_api_path('withdraw'), {'currency': 'etc', 'amount': 0.15, 'address': '0xec6a7105c9c5ac2503f2d7861097fc991a3a3be7'}) #chbtc
-	# balances =  client.post(client.get_api_path('withdraw'), {'currency': 'bts', 'amount': 5, 'address': 'yun-bts 75845781'})
-	# balances =  client.post(client.get_api_path('deposite_address'), {'currency': 'bts'})
-	# print(balances)
 	 
-async def post_chbtc():
-	access_key = 'a9e1f09e-1459-44df-8aea-024d97c37487'
-	secret_key = '4086a247-092a-4893-ac4c-62c2f6ee6242'
-	config = {'access_key': access_key, 'secret_key': secret_key}
-	exchange = CHBTCExchange(config)
-	result = await exchange.getAccountInfo()
-	# result = await exchange.getCashAsync()
-	# result = await exchange.getMultipleCurrencyAmountAsync(Currency.ETC, Currency.CNY)
-	# result = await exchange.getCurrencyAddressAsync(Currency.ETC)
-	# result = await exchange.buyAsync(currencyPair = CurrencyPair.ETC_CNY, amount = 0.1, price = 48.95)
-	# result = await exchange.sellAsync(currencyPair = CurrencyPair.ETC_CNY, amount = 0.1, price = 100.0)
-	# result = await exchange.getOrderAsync(currencyPair = CurrencyPair.ETC_CNY, id = "2017050717835714")
-	# result = await exchange.cancelOrderAsync(currencyPair = CurrencyPair.ETC_CNY, id = "2017050717835667")
-	# result = await exchange.getOpenOrdersAsync(currencyPair = CurrencyPair.ETC_CNY, params = {'pageIndex': 0, 'pageSize': 20})
-	# result = await exchange.getQuotes(currencyPair = CurrencyPair.ETC_CNY)
-	print(result)
-	# balances =  client.get('withdraw', {'currency': 'etc', 'amount': 0.12, 'safePwd': "danxiarongkai520", 'fees': 0.01, 'receiveAddr': '0xc4b177e97e448e183c31817fe3548b358709d5d0'})
-	# balances =  client.post(client.get_api_path('deposite_address'), {'currency': 'bts'})
-	# print(client.get(get_api_path('depth'), {'market': 'zeccny', 'limit': 10}))
-
-
 class Fee():
 	def enum(**enums):
 		return type('Enum', (), enums)
