@@ -65,6 +65,20 @@ arbitrage:
 
     #using_withdraw 为True时，算收益要去掉提现手续费（币跟现金）
     using_withdraw: False
+    
+  ANS_CNY:
+    arbitrage_exchanges: ['jubi', 'yunbi']
+    allow_slippage_perc: 0.0007
+    arbitrage_target_gain: 0.004
+    balance_target_gain: 0.0005
+    balance_ratio: 0.1 #买币方币数/卖币方币数 < balance_ratio时，按照balance_target_gain算套利机会，否则用arbitrage_target_gain
+    coin_trade_minimum: 0.1 #最少交易数量
+    coin_trade_maximum: 50 #最多交易数量
+    #风险控制，当alpha超过risk_alpha时不交易，主要是bter交易所，因为该交易所有可能返回其他币种的qoute，导致alpha异常大，但是是错的。
+    risk_alpha: 0.1
+
+    #using_withdraw 为True时，算收益要去掉提现手续费（币跟现金）
+    using_withdraw: False
 
 
 exchange:
@@ -74,8 +88,8 @@ exchange:
     max_order_retry: 5
     max_cancel_order_retry: 5
   - name: yunbi
-    access_key: 'Be8PSKRBfjwxHpqQG1Mzsi7fxDFSiuPxXZah6KWt'
-    secret_key: 'oh3CvTwKs8w5FdXj7zdzsQMcqXN3rwqfDehkR676'
+    access_key: 'FX5AD3PNBb9JFPEAhZIWT5ES5zO5PsMIP8KYpUYW'
+    secret_key: 'VEblGGm1LwEAUxJS0bkgwRPJcTaWwvwkrKaYo0rK'
     max_order_retry: 5
     max_cancel_order_retry: 5
   - name: jubi
