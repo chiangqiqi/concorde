@@ -12,7 +12,9 @@ Currency = enum(CNY = "CNY",
 				BTS = "BTS",
 				DASH = "DASH",
 				DOGE = "DOGE",
-				XRP = "XRP")
+				XRP = "XRP",
+                ANS = "ANS",
+                QTUM = "QTUM")
 
 CurrencyPair = enum(BTC_CNY = "BTC_CNY", 
 					LTC_CNY = "LTC_CNY", 
@@ -22,7 +24,9 @@ CurrencyPair = enum(BTC_CNY = "BTC_CNY",
 					BTS_CNY = "BTS_CNY",
 					DASH_CNY = "DASH_CNY",
 					DOGE_CNY = "DOGE_CNY",
-					XRP_CNY = "XRP_CNY")
+					XRP_CNY = "XRP_CNY",
+                    ANS_CNY = "ANS_CNY",
+                    QTUM_CNY = "QTUM_CNY")
 
 def currencyPair2Currency(currencyPair):
 	__CurrencyPair2Currency = {
@@ -35,6 +39,7 @@ def currencyPair2Currency(currencyPair):
 		CurrencyPair.DASH_CNY: Currency.DASH,
 		CurrencyPair.DOGE_CNY: Currency.DOGE,
 		CurrencyPair.XRP_CNY: Currency.XRP,
+        CurrencyPair.ANS_CNY: Currency.ANS
 	}
 	return __CurrencyPair2Currency[currencyPair]
 
@@ -44,7 +49,7 @@ def getCurrencyByName(name):
 	return None
 
 def getCurrencyPairByName(name):
-	if name in Currency.__dict__:
+	if name in CurrencyPair.__dict__:
 		return name
 	return None
 

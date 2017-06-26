@@ -16,8 +16,8 @@ db:
       trade: "trades"
 
 arbitrage:
-  currency_pairs: ['ETC_CNY', 'BTS_CNY']
-  exchanges: ['chbtc', 'yunbi', 'jubi']
+  currency_pairs: ['ETC_CNY', 'BTS_CNY', 'ZEC_CNY']
+  exchanges: ['chbtc', 'yunbi', 'jubi', 'bter']
 
   check_interval_second: 1.05 #多久检查一次套利机会
   wait_order_filled_second: 10 
@@ -53,10 +53,10 @@ arbitrage:
 
 
   ETC_CNY:
-    arbitrage_exchanges: ['jubi', 'yunbi']
+    arbitrage_exchanges: ['jubi', 'yunbi', 'chbtc']
     allow_slippage_perc: 0.0007
     arbitrage_target_gain: 0.004
-    balance_target_gain: 0.0005
+    balance_target_gain: 0.001
     balance_ratio: 0.1 #买币方币数/卖币方币数 < balance_ratio时，按照balance_target_gain算套利机会，否则用arbitrage_target_gain
     coin_trade_minimum: 0.1 #最少交易数量
     coin_trade_maximum: 10 #最多交易数量
@@ -67,19 +67,47 @@ arbitrage:
     using_withdraw: False
     
   ANS_CNY:
-    arbitrage_exchanges: ['jubi', 'yunbi']
+    arbitrage_exchanges: ['yunbi', 'bter']
+    allow_slippage_perc: 0.0007
+    arbitrage_target_gain: 0.004
+    balance_target_gain: 0.001
+    balance_ratio: 0.1 
+    coin_trade_minimum: 0.1 #最少交易数量
+    coin_trade_maximum: 50 #最多交易数量
+    risk_alpha: 0.1
+    using_withdraw: False
+
+  ZEC_CNY:
+    arbitrage_exchanges: ['bter', 'yunbi']
     allow_slippage_perc: 0.0007
     arbitrage_target_gain: 0.004
     balance_target_gain: 0.0005
-    balance_ratio: 0.1 #买币方币数/卖币方币数 < balance_ratio时，按照balance_target_gain算套利机会，否则用arbitrage_target_gain
+    balance_ratio: 0.1 
+    coin_trade_minimum: 0.05 #最少交易数量
+    coin_trade_maximum: 5 #最多交易数量
+    risk_alpha: 0.1
+    using_withdraw: False
+  
+  QTUM_CNY:
+    arbitrage_exchanges: ['bter', 'yunbi']
+    allow_slippage_perc: 0.0007
+    arbitrage_target_gain: 0.004
+    balance_target_gain: 0.0005
+    balance_ratio: 0.1 
     coin_trade_minimum: 0.1 #最少交易数量
     coin_trade_maximum: 50 #最多交易数量
-    #风险控制，当alpha超过risk_alpha时不交易，主要是bter交易所，因为该交易所有可能返回其他币种的qoute，导致alpha异常大，但是是错的。
     risk_alpha: 0.1
-
-    #using_withdraw 为True时，算收益要去掉提现手续费（币跟现金）
     using_withdraw: False
-
+  XRP_CNY:
+    arbitrage_exchanges: ['bter', 'jubi']
+    allow_slippage_perc: 0.0007
+    arbitrage_target_gain: 0.004
+    balance_target_gain: 0.001
+    balance_ratio: 0.1
+    coin_trade_minimum: 100 #最少交易数量
+    coin_trade_maximum: 5000 #最多交易数量
+    risk_alpha: 0.1
+    using_withdraw: False
 
 exchange:
   - name: chbtc
@@ -97,4 +125,8 @@ exchange:
     secret_key: '6)N;7-^gxLA-4&Se2-s!FV,-~8BB3-6]5vz-8BwUj'
     max_order_retry: 5
     max_cancel_order_retry: 5
-
+  - name: bter
+    access_key: '606A0574-2865-4102-A346-E030F1F2E33A'
+    secret_key: '611e759f2a98209488089ae79a899bf989c243e786c0ff7348718c71d2a5f9c9'
+    max_order_retry: 5
+    max_cancel_order_retry: 5

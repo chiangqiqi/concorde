@@ -12,6 +12,7 @@ BterTradeFee = {
 	CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 	CurrencyPair.ZEC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 	CurrencyPair.BTS_CNY: Fee(0.002, Fee.FeeTypes.PERC),
+	CurrencyPair.XRP_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 }
 
 BterWithdrawFee = {
@@ -29,6 +30,8 @@ class Exchange(ExchangeBase):
 		Currency.ETH: "ETH",
 		Currency.ZEC: "ZEC",
 		Currency.BTS: "BTS",
+		Currency.XRP: "XRP",
+        Currency.QTUM: "QTUM"
 	}
 	__currency_pair_map = {
 		CurrencyPair.BTC_CNY: "btc_cny",
@@ -37,6 +40,8 @@ class Exchange(ExchangeBase):
 		CurrencyPair.ETH_CNY: "eth_cny",
 		CurrencyPair.ZEC_CNY: "zec_cny",
 		CurrencyPair.BTS_CNY: "bts_cny",
+		CurrencyPair.XRP_CNY: "xrp_cny",
+        CurrencyPair.QTUM_CNY: "qtum_cny"
 	}
 
 	def __init__(self, config):

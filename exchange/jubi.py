@@ -33,6 +33,7 @@ class Exchange(ExchangeBase):
 		Currency.ETH: "eth",
 		Currency.XRP: "xrp",
 		Currency.DOGE: "doge",
+        Currency.ANS: "ans"
 	}
 	__currency_pair_map = {
 		CurrencyPair.BTC_CNY: "btc",
@@ -42,6 +43,7 @@ class Exchange(ExchangeBase):
 		CurrencyPair.ETH_CNY: "eth",
 		CurrencyPair.XRP_CNY: "xrp",
 		CurrencyPair.DOGE_CNY: "doge",
+        CurrencyPair.ANS_CNY: "ans"
 	}
 
 	__trade_type_buy = "buy"
