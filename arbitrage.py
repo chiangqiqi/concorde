@@ -52,7 +52,7 @@ def main():
         print('input coin')
 
 
-    d = {'zec': CurrencyPair.ZEC_CNY, 'xrp': CurrencyPair.XRP_CNY}
+    d = {'zec': CurrencyPair.ZEC_CNY, 'xrp': CurrencyPair.XRP_CNY, 'BTS': CurrencyPair.BTS_CNY, 'ETC': CurrencyPair.ETC_CNY}
 
     cp = getCurrencyPairByName(d[sys.argv[1]])
     loop.run_until_complete(machine.run(cp))
