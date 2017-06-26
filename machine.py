@@ -199,7 +199,7 @@ class ArbitrageMachine(object):
                 await self.sendOpenOrderWarnSms(sellExchangeName, sellOrderId, sellAmount, sellPrice)
 
             #流水日志
-            water = {"time": datetime.now(),
+            water = {"time": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                      "buyExchange": buyExchangeName,
                      "sellExchange": sellExchangeName,
                      "buyPrice": buyPrice,
