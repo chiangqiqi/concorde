@@ -111,22 +111,22 @@ arbitrage:
 
 exchange:
   - name: chbtc
-    access_key: '0b15eb2a-d751-41e7-bbfd-79ae5a58c525'
-    secret_key: '0d3f9560-65ac-413d-b962-7b6427963ee7'
+    access_key: 'key1'
+    secret_key: 'key'
     max_order_retry: 5
     max_cancel_order_retry: 5
   - name: yunbi
-    access_key: 'FX5AD3PNBb9JFPEAhZIWT5ES5zO5PsMIP8KYpUYW'
-    secret_key: 'VEblGGm1LwEAUxJS0bkgwRPJcTaWwvwkrKaYo0rK'
+    access_key: 'key'
+    secret_key: 'key'
     max_order_retry: 5
     max_cancel_order_retry: 5
   - name: jubi
-    access_key: '3pa1s-bjq5a-ebp8n-c854n-tgdvh-dngxm-b1am2'
-    secret_key: '6)N;7-^gxLA-4&Se2-s!FV,-~8BB3-6]5vz-8BwUj'
+    access_key: 'key'
+    secret_key: 'key'
     max_order_retry: 5
     max_cancel_order_retry: 5
   - name: bter
-    access_key: '606A0574-2865-4102-A346-E030F1F2E33A'
-    secret_key: '611e759f2a98209488089ae79a899bf989c243e786c0ff7348718c71d2a5f9c9'
+    access_key: 'key'
+    secret_key: 'key'
     max_order_retry: 5
     max_cancel_order_retry: 5
