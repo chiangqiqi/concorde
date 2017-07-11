@@ -60,7 +60,6 @@ class Exchange(ExchangeBase):
 
     async def getAccountInfo(self):
         resp =  await self.client.get(get_api_path('members'))
-        logging.info("resp is {}".format(resp))
         if 'error' in resp:
             raise ApiErrorException(resp['error']['code'], resp['error']['message'])
         resp_balances = resp['accounts']

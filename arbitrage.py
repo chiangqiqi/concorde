@@ -48,7 +48,7 @@ def main():
     machine = ArbitrageMachine(config)
     loop = asyncio.get_event_loop()
 
-    d = {'xrp': CurrencyPair.XRP_CNY, 'BTS': CurrencyPair.BTS_CNY, 'ETC': CurrencyPair.ETC_CNY}
+    d = {'xrp': CurrencyPair.XRP_CNY, 'BTS': CurrencyPair.BTS_CNY, 'ETC': CurrencyPair.ETC_CNY, 'ETH': CurrencyPair.ETH_CNY}
 
     coin = sys.argv[1]
     # cp = getCurrencyPairByName(d[sys.argv[1]])
