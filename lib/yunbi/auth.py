@@ -29,7 +29,6 @@ class Auth():
     def sign(self, verb, path, params=None):
         query = self.urlencode(params)
         msg = "|".join([verb, path, query])
-        print(msg)
         signature = hmac.new(self.secret_key.encode("utf8"), msg=msg.encode("utf8"), digestmod=hashlib.sha256).hexdigest()
         return signature
 

@@ -103,7 +103,4 @@ class Client():
                     resp_text = await resp.text()
                     logging.debug("chbtc resp: %s", resp_text)
                     return json.loads(resp_text)
-        # resp = urllib.request.urlopen(url)
-        # data = resp.readlines()
-        # if len(data):
-        #     return json.loads(data[0].decode("utf8"))
+ 

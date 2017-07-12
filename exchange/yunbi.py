@@ -9,6 +9,7 @@ from .exception import *
 import logging
 
 YunbiTradeFee = {
+    CurrencyPair.ETH_CNY: Fee(0.001, Fee.FeeTypes.PERC),
     CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
     CurrencyPair.ZEC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
     CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
