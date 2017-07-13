@@ -6,11 +6,11 @@ import time
 import logging
 import aiohttp
 
-BASE_URL = 'http://www.viabtc.cn'
+BASE_URL = 'https://www.viabtc.cn'
 
 API_BASE_PATH = '{}/api/v1'.format(BASE_URL)
 API_PATH_DICT = {
-    'order': '%s/add',
+    'order': '%s/order/limit',
     'trade_view': '%s/trade_view',
     'trade_list': '%s/trade_list',
     'cancelOrder': '%s/trade_cancel',
@@ -42,11 +42,11 @@ class Client(object):
     def __set_authorization(self, params):
         params['access_id'] = self.access_id
         self.headers['access_id'] = self.access_id
-        self.headers['AUTHORIZATION'] = get_sign(params, self.secret_key)
+        self.headers['authorization'] = get_sign(params, self.secret_key)
 
-    async def get(self, method, params):
-        # method = method.upper()
+    async def get(self, method, params={}):
         url = get_api_path(method)
+        params['access_id'] = self.access_id
         self.__set_authorization(params)
         async with aiohttp.ClientSession() as session:
             async with session.get(url,params=params, headers=self.headers) as resp:
@@ -54,9 +54,14 @@ class Client(object):
                 print(d)
                 return d
 
-    async def post(self, meth, url, params):
+    async def post(self, method, params):
+        url = get_api_path(method)
+        params['access_id'] = self.access_id
+        self.__set_authorization(params)
+
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout = 20) as resp:
-                self.__set_authorization(json)
-                result = requests.request(method, url, json=json, headers=self.headers)
-                return result
+            async with session.post(url, json=params, headers=self.headers, timeout = 20) as resp:
+                print(params)
+                d = await resp.json()
+                print(d)
+                return d
