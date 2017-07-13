@@ -30,11 +30,10 @@ class Exchange(ExchangeBase):
         Currency.ETH: "ETH",
     }
     __currency_pair_map = {
-        CurrencyPair.BTC_CNY: "btc_cny",
-        CurrencyPair.LTC_CNY: "ltc_cny",
-        CurrencyPair.ETC_CNY: "etc_cny",
-        CurrencyPair.ETH_CNY: "eth_cny",
-        CurrencyPair.BTS_CNY: "bts_cny"
+        CurrencyPair.BTC_CNY: "BTCCNY",
+        CurrencyPair.LTC_CNY: "LTCCNY",
+        CurrencyPair.ETC_CNY: "ETCCNY",
+        CurrencyPair.ETH_CNY: "ETHCNY",
     }
 
     __trade_type_buy = 1
@@ -64,29 +63,34 @@ class Exchange(ExchangeBase):
             if currency_str in __inverted_currency_map:
                 currency = __inverted_currency_map[currency_str]
                 balances.update({currency: float(resp_balances[currency_str]['available'])})
-        
+
         return {"balances": balances}
 
     async def getQuotes(self, currencyPair, size = 50):
-        resp =  await self.client.get('depth', {'currency': self.__currency_pair_map[currencyPair], 'size': size})
+        params = {'market': self.__currency_pair_map[currencyPair],
+                  'merge':0, 'limit': size}
+        resp = await self.client.get('depth', params)
+
         if 'code' in resp and resp['code'] != OK_CODE:
             raise ApiErrorException(resp['code'], resp['message'])
-        bids = list(map(lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1])), resp['bids']))
-        asks = list(map(lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1])), resp['asks']))
+
+        format_item = lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1]))
+
+        data = resp['data']
+        bids = [format_item(r) for r in data['bids']]
+        asks = [format_item(r) for r in data['asks']]
+
         quotes = Quotes(bids = bids, asks = asks)
-        logging.debug("chbtc quotes: %s", quotes)
+        logging.debug("quotes: %s", quotes)
         return quotes
 
-    async def getCashAsync(self):
-        resp =  await self.client.get('getAccountInfo')
-        if 'code' in resp and resp['code'] != OK_CODE:
-            raise ApiErrorException(resp['code'], resp['message'])
-        return round(float(resp['result']['balance']['CNY']['amount']), 2)
 
     async def getCurrencyAmountAsync(self, currency):
         resp =  await self.client.get('getAccountInfo')
+
         if 'code' in resp and resp['code'] != OK_CODE:
             raise ApiErrorException(resp['code'], resp['message'])
+
         cur = self.__currency_map[currency].upper()
         if cur not in resp['result']['balance']:
             raise CurrencyNotExistException(currency)
