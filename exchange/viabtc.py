@@ -103,25 +103,29 @@ class Exchange(ExchangeBase):
             raise ApiErrorException(resp['code'], resp['message'])
         return resp['message']['datas']['key']
 
-    async def buyAsync(self, currencyPair, amount, price):
+    async def tradeAsync(self, currencyPair, amount, price, action):
+        """
+        action: buy or sell
+        """
         logging.debug("chbtc buy %s, amount %s, price %s", currencyPair, amount, price)
-        resp =  await self.client.get('order', {'currency': self.__currency_pair_map[currencyPair],
-                                           'amount': amount,
-                                           'price': price,
-                                           'tradeType': self.__trade_type_buy})
+        params = {'market': self.__currency_pair_map[currencyPair],
+                  'amount': amount,
+                  'price': price,
+                  'type': action,
+                  'source_id': 'abc'
+        }
+        resp =  await self.client.post('order', params)
+        
         if 'code' in resp and resp['code'] != OK_CODE:
             raise ApiErrorException(resp['code'], resp['message'])
-        return resp['id']
+        
+        return resp['data']['id']
 
+    async def buyAsync(self, currencyPair, amount, price):
+        return await self.tradeAsync(currencyPair, amount, price, 'buy')
+    
     async def sellAsync(self, currencyPair, amount, price):
-        logging.debug("chbtc sell %s, amount %s, price %s", currencyPair, amount, price)
-        resp =  await self.client.get('order', {'currency': self.__currency_pair_map[currencyPair],
-                                           'amount': amount,
-                                           'price': price,
-                                           'tradeType': self.__trade_type_sell})
-        if 'code' in resp and resp['code'] != OK_CODE:
-            raise ApiErrorException(resp['code'], resp['message'])
-        return resp['id']
+        return await self.tradeAsync(currencyPair, amount, price, 'sell')
 
     async def cancelOrderAsync(self, currencyPair, id):
         logging.debug("chbtc cancel order id %s, currencyPair %s", id, currencyPair)
@@ -166,8 +170,9 @@ class Exchange(ExchangeBase):
 
 
     async def getOrderAsync(self, currencyPair, id):
-        resp =  await self.client.get('getOrder', {'currency': self.__currency_pair_map[currencyPair],
-                                              'id': id})
+        params = {'currency': self.__currency_pair_map[currencyPair], 'id': id}
+        resp =  await self.client.post('getOrder', params)
+        
         if 'code' in resp and resp['code'] != OK_CODE:
             raise ApiErrorException(resp['code'], resp['message'])
 

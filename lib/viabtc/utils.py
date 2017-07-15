@@ -54,8 +54,6 @@ def to_unicode(data, encoding='UTF-8'):
 
     if isinstance(data, type_to_str):
         data = str(data)
-    elif isinstance(data, bytes_type):
-        data = str(data)
     elif hasattr(data, '__iter__'):
         if isinstance(data, list):
             # Assume it's a one list data structure
