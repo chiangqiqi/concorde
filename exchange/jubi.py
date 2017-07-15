@@ -13,7 +13,8 @@ JUBITradeFee = {
     CurrencyPair.XRP_CNY: Fee(0.001, Fee.FeeTypes.PERC),
     CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
     CurrencyPair.DOGE_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-        CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+    CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+    CurrencyPair.ANS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 }
 
 JUBIWithdrawFee = {
