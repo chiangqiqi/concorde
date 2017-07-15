@@ -116,7 +116,8 @@ class Exchange(ExchangeBase):
         #特殊逻辑，每个币种的价格精确度不一样，必须调用方处理
         # this fucing api has strange precision limit
         precision_dict = {CurrencyPair.XRP_CNY: 4, CurrencyPair.DOGE_CNY: 6,
-                          CurrencyPair.ETC_CNY: 2, CurrencyPair.BTS_CNY: 6}
+                          CurrencyPair.ETC_CNY: 2, CurrencyPair.BTS_CNY: 6,
+                          CurrencyPair.ANS_CNY:4}
 
         precision = precision_dict[currencyPair] if currencyPair in precision_dict else 6
 
