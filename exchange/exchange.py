@@ -62,6 +62,7 @@ class ExchangeBase(with_metaclass(abc.ABCMeta)):
         most time, get cash async should be just inside the balance
         """
         resp =  await self.getAccountInfo()
+
         return round(float(resp['balances']['CNY']), 2)
 
     @abc.abstractmethod

@@ -87,15 +87,13 @@ class Exchange(ExchangeBase):
 
 
     async def getCurrencyAmountAsync(self, currency):
-        resp =  await self.client.get('getAccountInfo')
-
-        if 'code' in resp and resp['code'] != OK_CODE:
-            raise ApiErrorException(resp['code'], resp['message'])
+        resp =  await self.getAccountInfo()
+        balance = resp['balances']
 
         cur = self.__currency_map[currency].upper()
-        if cur not in resp['result']['balance']:
+        if cur not in balance:
             raise CurrencyNotExistException(currency)
-        return float(resp['result']['balance'][cur]['amount'])
+        return float(balance[cur])
 
     async def getCurrencyAddressAsync(self, currency):
         cur = self.__currency_map[currency]
