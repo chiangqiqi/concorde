@@ -57,12 +57,13 @@ class Exchange(ExchangeBase):
     async def getAccountInfo(self):
         resp =  await self.client.get('balances')
         resp_balances = resp['data']
+        
         balances = {}
         __inverted_currency_map = {v.upper():k for (k,v) in self.__currency_map.items()}
         for currency_str in resp_balances:
             if currency_str in __inverted_currency_map:
                 currency = __inverted_currency_map[currency_str]
-                balances.update({currency: float(resp_balances[currency_str]['available'])})
+                balances[currency_str] = float(resp_balances[currency_str]['available'])
 
         return {"balances": balances}
 
