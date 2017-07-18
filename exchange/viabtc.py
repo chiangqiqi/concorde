@@ -136,22 +136,25 @@ class Exchange(ExchangeBase):
 
     def _json_to_order(self, currencyPair, orderJs):
         id = orderJs['id']
-        tradeDate = int(orderJs['trade_date'])
-        if int(orderJs['type']) == self.__trade_type_buy:
+        tradeDate = int(orderJs['create_time'])
+
+        if orderJs['type'] == 'buy':
             buyOrSell = OrderDirection.BUY
         else:
             buyOrSell = OrderDirection.SELL
+
         price = float(orderJs['price'])
-        amount = float(orderJs['total_amount'])
-        filledPrice = float(orderJs['trade_price'])
-        filledAmount = float(orderJs['trade_amount'])
-        fee = float(orderJs['fees'])
-        orderJsState = int(orderJs['status'])
-        if orderJsState == self.__order_status_open:
+        amount = float(orderJs['amount'])
+        filledPrice = float(orderJs['avg_price'])
+        filledAmount = float(orderJs['deal_amount'])
+        fee = float(orderJs['deal_fee'])
+        orderJsState = orderJs['status']
+        
+        if orderJsState == 'not_deal':
             state = OrderState.INITIAL
-        elif orderJsState == self.__order_status_filled:
+        elif orderJsState == 'done':
             state = OrderState.FILLED
-        elif orderJsState == self.__order_status_paritially_filled:
+        elif orderJsState == 'part_deal':
             state = OrderState.PARTIALLY_FILLED
         else:
             state = OrderState.CANCELLED
@@ -169,13 +172,13 @@ class Exchange(ExchangeBase):
 
 
     async def getOrderAsync(self, currencyPair, id):
-        params = {'currency': self.__currency_pair_map[currencyPair], 'id': id}
-        resp =  await self.client.post('getOrder', params)
+        params = {'market': self.__currency_pair_map[currencyPair], 'id': id}
+        resp =  await self.client.get('getOrder', params)
         
         if 'code' in resp and resp['code'] != OK_CODE:
             raise ApiErrorException(resp['code'], resp['message'])
 
-        order = self._json_to_order(currencyPair, resp)
+        order = self._json_to_order(currencyPair, resp['data'])
         return order
 
     async def getOpenOrdersAsync(self, currencyPair, params = {}):

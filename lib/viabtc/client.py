@@ -16,6 +16,7 @@ API_PATH_DICT = {
     'cancelOrder': '%s/trade_cancel',
     'depth': '%s/market/depth',
     'balances': '%s/balance',
+    'getOrder': '%s/order'
 }
 
 def get_api_path(name):
