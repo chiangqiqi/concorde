@@ -127,12 +127,7 @@ class Exchange(ExchangeBase):
         return await self.tradeAsync(currencyPair, amount, price, 'sell')
 
     async def cancelOrderAsync(self, currencyPair, id):
-        logging.debug("chbtc cancel order id %s, currencyPair %s", id, currencyPair)
-        resp =  await self.client.get('cancelOrder', {'currency': self.__currency_pair_map[currencyPair],
-                                              'id': id})
-        if 'code' in resp and resp['code'] != OK_CODE:
-            raise ApiErrorException(resp['code'], resp['message'])
-        return True
+        raise NotImplementedError('not implemented')
 
     def _json_to_order(self, currencyPair, orderJs):
         id = orderJs['id']
@@ -182,10 +177,4 @@ class Exchange(ExchangeBase):
         return order
 
     async def getOpenOrdersAsync(self, currencyPair, params = {}):
-        new_params = params
-        new_params.update({"currency": self.__currency_pair_map[currencyPair]})
-        resp =  await self.client.get('getUnfinishedOrdersIgnoreTradeType', params)
-        if 'code' in resp and resp['code'] != OK_CODE:
-            raise ApiErrorException(resp['code'], resp['message'])
-        orders = list(map(lambda orderJs: self._json_to_order(currencyPair, orderJs), resp))
-        return orders
+        raise NotImplementedError('not implemented')
