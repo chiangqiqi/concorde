@@ -52,7 +52,6 @@ class Client(object):
         async with aiohttp.ClientSession() as session:
             async with session.get(url,params=params, headers=self.headers) as resp:
                 d = await resp.json()
-                print(d)
                 return d
 
     async def post(self, method, params):
@@ -62,7 +61,5 @@ class Client(object):
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=params, headers=self.headers, timeout = 20) as resp:
-                print(params)
                 d = await resp.json()
-                print(d)
                 return d

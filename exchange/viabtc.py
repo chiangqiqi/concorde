@@ -12,6 +12,7 @@ TradeFee = {
         CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
         CurrencyPair.ETH_CNY: Fee(0.001, Fee.FeeTypes.PERC),
         CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.ZEC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 }
 
 WithdrawFee = {
@@ -34,15 +35,8 @@ class Exchange(ExchangeBase):
         CurrencyPair.LTC_CNY: "LTCCNY",
         CurrencyPair.ETC_CNY: "ETCCNY",
         CurrencyPair.ETH_CNY: "ETHCNY",
+        CurrencyPair.ZEC_CNY: "ZECCNY",
     }
-
-    __trade_type_buy = 1
-    __trade_type_sell = 0
-
-    __order_status_open = 0 #待成交
-    __order_status_cancelled = 1
-    __order_status_filled = 2
-    __order_status_paritially_filled = 3
 
     def __init__(self, config):
         super().__init__(config)
@@ -57,7 +51,7 @@ class Exchange(ExchangeBase):
     async def getAccountInfo(self):
         resp =  await self.client.get('balances')
         resp_balances = resp['data']
-        
+
         balances = {}
         __inverted_currency_map = {v.upper():k for (k,v) in self.__currency_map.items()}
         for currency_str in resp_balances:
@@ -114,15 +108,15 @@ class Exchange(ExchangeBase):
                   'source_id': 'abc'
         }
         resp =  await self.client.post('order', params)
-        
+
         if 'code' in resp and resp['code'] != OK_CODE:
             raise ApiErrorException(resp['code'], resp['message'])
-        
+
         return resp['data']['id']
 
     async def buyAsync(self, currencyPair, amount, price):
         return await self.tradeAsync(currencyPair, amount, price, 'buy')
-    
+
     async def sellAsync(self, currencyPair, amount, price):
         return await self.tradeAsync(currencyPair, amount, price, 'sell')
 
@@ -144,7 +138,7 @@ class Exchange(ExchangeBase):
         filledAmount = float(orderJs['deal_amount'])
         fee = float(orderJs['deal_fee'])
         orderJsState = orderJs['status']
-        
+
         if orderJsState == 'not_deal':
             state = OrderState.INITIAL
         elif orderJsState == 'done':
@@ -169,7 +163,7 @@ class Exchange(ExchangeBase):
     async def getOrderAsync(self, currencyPair, id):
         params = {'market': self.__currency_pair_map[currencyPair], 'id': id}
         resp =  await self.client.get('getOrder', params)
-        
+
         if 'code' in resp and resp['code'] != OK_CODE:
             raise ApiErrorException(resp['code'], resp['message'])
 
