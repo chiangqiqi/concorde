@@ -13,6 +13,7 @@ YunbiTradeFee = {
     CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
     CurrencyPair.ZEC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
     CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+    CurrencyPair.ANS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 }
 
 YunbiWithdrawFee = {

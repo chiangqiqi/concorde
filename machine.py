@@ -125,10 +125,10 @@ class ArbitrageMachine(object):
 
     # async def sendOpenOrderSms(self, phonenum, exchange, orderId, amount, price):
 
-    async def doTrade(self, 
-                      currencyPair, 
-                      buyExchangeName, 
-                      buyPrice, 
+    async def doTrade(self,
+                      currencyPair,
+                      buyExchangeName,
+                      buyPrice,
                       buyAmount,
                       sellExchangeName,
                       sellPrice,
@@ -144,20 +144,20 @@ class ArbitrageMachine(object):
         waitSeconds = self.config['arbitrage']['wait_order_filled_second']
 
         # get retry config
-        buyMaxOrderRetry = filter(lambda x: x['name'] == buyExchangeName, 
+        buyMaxOrderRetry = filter(lambda x: x['name'] == buyExchangeName,
                                 self.config['exchange']).__next__()['max_order_retry']
-        buyMaxCancelOrderRetry = filter(lambda x: x['name'] == buyExchangeName, 
+        buyMaxCancelOrderRetry = filter(lambda x: x['name'] == buyExchangeName,
                                 self.config['exchange']).__next__()['max_cancel_order_retry']
-        sellMaxOrderRetry = filter(lambda x: x['name'] == sellExchangeName, 
+        sellMaxOrderRetry = filter(lambda x: x['name'] == sellExchangeName,
                                 self.config['exchange']).__next__()['max_order_retry']
-        sellMaxCancelOrderRetry = filter(lambda x: x['name'] == sellExchangeName, 
+        sellMaxCancelOrderRetry = filter(lambda x: x['name'] == sellExchangeName,
                                 self.config['exchange']).__next__()['max_cancel_order_retry']
 
         # make order
         (buyOrderId, sellOrderId) = await asyncio.gather(
-            self.orderWithRetry(currencyPair = currencyPair, exchangeName = buyExchangeName, price = buyPrice, 
+            self.orderWithRetry(currencyPair = currencyPair, exchangeName = buyExchangeName, price = buyPrice,
                                 amount = buyAmount, isSell = False, maxRetryNum = buyMaxOrderRetry),
-            self.orderWithRetry(currencyPair = currencyPair, exchangeName = sellExchangeName, price = sellPrice, 
+            self.orderWithRetry(currencyPair = currencyPair, exchangeName = sellExchangeName, price = sellPrice,
                                 amount = sellAmount, isSell = True, maxRetryNum = sellMaxOrderRetry))
 
         # 两者下单都失败，记录日志
@@ -188,13 +188,13 @@ class ArbitrageMachine(object):
                 sellOrderStateStr = "OPEN"
 
             if buyOrderState != OrderState.FILLED:
-                logging.warn("buy order(%s) is not filled in exchange %s in %s seconds", 
+                logging.warn("buy order(%s) is not filled in exchange %s in %s seconds",
                     buyOrderId, buyExchangeName, waitSeconds)
                 # send sms
                 await self.sendOpenOrderWarnSms(buyExchangeName, buyOrderId, buyAmount, buyPrice)
 
             if sellOrderState != OrderState.FILLED:
-                logging.warn("sell order(%s) is not filled in exchange %s in %s seconds", 
+                logging.warn("sell order(%s) is not filled in exchange %s in %s seconds",
                     sellOrderId, sellExchangeName, waitSeconds)
                 await self.sendOpenOrderWarnSms(sellExchangeName, sellOrderId, sellAmount, sellPrice)
 
@@ -241,7 +241,7 @@ class ArbitrageMachine(object):
             waterLogger.info("%s", water)
         if sellOrderId is not None:
             logging.warn("doTrade place order in %s success but failed in %s", sellExchangeName, buyExchangeName)
-            if buyOrderId != ORDER_ID_FILLED_IMMEDIATELY: 
+            if buyOrderId != ORDER_ID_FILLED_IMMEDIATELY:
                 cancelSucess = await self.cancelOrderWithRetry(currencyPair, sellExchangeName, sellOrderId, sellMaxCancelOrderRetry)
             #TODO: 报警，有open orders存在
             await self.sendOpenOrderWarnSms(buyExchangeName, "failed", buyAmount, buyPrice)
@@ -282,14 +282,14 @@ class ArbitrageMachine(object):
             logging.warn("%s do not have enough coin to sell, only have %f, coin_trade_minimum is %f",
                         sellExchangeName, sellExchangeCoinAmount, coinTradeMinimum)
             return True
-        
+
         #校验有没足够的的钱买币
         if buyPrice * coinTradeMinimum > buyExchangeCash:
             logging.warn("%s do not have enough money to buy, only have %f, coin_trade_minimum is %f, min ask price is %f",
                         buyExchangeName, buyExchangeCash, coinTradeMinimum, buyPrice)
             return True
         return False
-        
+
     # return True if submit transfer success, else False
     async def transferCoin(self, currencyPair, fromExchange, toExchange, amount):
         currency = currencyPair2Currency(currencyPair)
@@ -301,7 +301,7 @@ class ArbitrageMachine(object):
         if currency == Currency.BTS:
             memo = exchangeWithdrawMemo[toExchange]
 
-        logging.info("calling exchange %s to transfer %d coin to exchange %s, address = %s, memo = %s", 
+        logging.info("calling exchange %s to transfer %d coin to exchange %s, address = %s, memo = %s",
                         fromExchange, amount, toExchange, address, memo)
         try:
             await self.exchanges[fromExchange].withdraw(currency = currency, amount = amount, address = address, memo = memo)
@@ -313,31 +313,35 @@ class ArbitrageMachine(object):
         return True
 
     # return True if arbitrage exist and order success else False
-    async def checkEntryAndArbitrage(self, 
+    async def checkEntryAndArbitrage(self,
                                     currencyPair,
                                     buyExchangeName,
-                                    askItems, 
+                                    askItems,
                                     sellExchangeName,
                                     bidItems):
+        buyexchange = self.exchanges[buyExchangeName]
+        sellexchange = self.exchanges[sellExchangeName]
+
         currency = currencyPair2Currency(currencyPair)
         #config
-        balanceRatio = self.config['arbitrage'][currencyPair]['balance_ratio']
-        coinTradeMinimum = self.config['arbitrage'][currencyPair]['coin_trade_minimum']
-        coinTradeMaximum = self.config['arbitrage'][currencyPair]['coin_trade_maximum']
-        allowSlippagePerc = self.config['arbitrage'][currencyPair]['allow_slippage_perc']
-        riskAlpha = self.config['arbitrage'][currencyPair]['risk_alpha']
-        usingWithdraw = self.config['arbitrage'][currencyPair]['using_withdraw']
-        withdrawPerc = self.config['arbitrage'][currencyPair].get('withdraw_perc')
-        withdrawMinimum = self.config['arbitrage'][currencyPair].get('withdraw_minimum')
-        isExchangeWithdrawAllowed = self.config['arbitrage'][currencyPair].get('exchange_withdraw_permission')
-        logging.debug("usingWithdraw %s, withdrawPerc %s, withdrawMinimum %s, isExchangeWithdrawAllowed %s", 
+        conf = self.config['arbitrage'][currencyPair]
+        balanceRatio = conf['balance_ratio']
+        coinTradeMinimum = conf['coin_trade_minimum']
+        coinTradeMaximum = conf['coin_trade_maximum']
+        allowSlippagePerc = conf['allow_slippage_perc']
+        riskAlpha = conf['risk_alpha']
+        usingWithdraw = conf['using_withdraw']
+        withdrawPerc = conf.get('withdraw_perc')
+        withdrawMinimum = conf.get('withdraw_minimum')
+        isExchangeWithdrawAllowed = conf.get('exchange_withdraw_permission')
+        logging.debug("usingWithdraw %s, withdrawPerc %s, withdrawMinimum %s, isExchangeWithdrawAllowed %s",
             usingWithdraw, withdrawPerc, withdrawMinimum, isExchangeWithdrawAllowed)
 
         #account info
-        buyExchangeCash = self.exchanges[buyExchangeName].accountInfo['balances'][Currency.CNY]
-        sellExchangeCash = self.exchanges[sellExchangeName].accountInfo['balances'][Currency.CNY]
-        buyExchangeCoinAmount = self.exchanges[buyExchangeName].accountInfo['balances'][currency]
-        sellExchangeCoinAmount = self.exchanges[sellExchangeName].accountInfo['balances'][currency]
+        buyExchangeCash = buyexchange.accountInfo['balances'][Currency.CNY]
+        sellExchangeCash = sellexchange.accountInfo['balances'][Currency.CNY]
+        buyExchangeCoinAmount = buyexchange.accountInfo['balances'][currency]
+        sellExchangeCoinAmount = sellexchange.accountInfo['balances'][currency]
 
         #转币如果允许的话
         if usingWithdraw:
@@ -346,16 +350,16 @@ class ArbitrageMachine(object):
             transferAmount >= withdrawMinimum and \
             (isExchangeWithdrawAllowed is None or isExchangeWithdrawAllowed[buyExchangeName]):
                 logging.info("transfer %s %s from %s to %s", transferAmount, currency, buyExchangeName, sellExchangeName)
-                await self.transferCoin(currencyPair = currencyPair, 
-                                  fromExchange = buyExchangeName, 
-                                  toExchange = sellExchangeName, 
+                await self.transferCoin(currencyPair = currencyPair,
+                                  fromExchange = buyExchangeName,
+                                  toExchange = sellExchangeName,
                                   amount = transferAmount)
                 return
 
         #校验是否有足够的钱或币进行交易
         if await self.notEnoughBalanceToTrade(currencyPair, buyExchangeName, askItems[0].price, sellExchangeName):
             return False
-        
+
         #决定套利收获
         gainTarget = self.determineGainTarget(currencyPair, buyExchangeCoinAmount, sellExchangeCoinAmount)
 
@@ -400,8 +404,8 @@ class ArbitrageMachine(object):
                 tradeAmount = min(tradeAmount, avaliableBuyAmount)
                 if buyExchangeCoinAmount / sellExchangeCoinAmount < balanceRatio:
                     balanceTransferAmount =  sellExchangeCoinAmount - (buyExchangeCoinAmount + sellExchangeCoinAmount) / 2.0
-                    logging.info("transfer coin[%s->%s], num = %f", 
-                                sellExchangeCoinAmount, 
+                    logging.info("transfer coin[%s->%s], num = %f",
+                                sellExchangeCoinAmount,
                                 buyExchangeCoinAmount,
                                 balanceTransferAmount)
                     tradeAmount = min(tradeAmount, self._floor(balanceTransferAmount))
@@ -434,7 +438,7 @@ class ArbitrageMachine(object):
                         "buyValue=%.2f, sellValue=%.2f, tradeCost=%.2f, withdrawCost=%.2f, alphaFlat=%.2f, alpha = %f",
                         buyExchangeName, askPrice, askAmount, sellExchangeName, bidPrice, bidAmount,
                         buyExchangeName, sellExchangeName, buyValue, sellValue, tradeCost, withdrawCost, alphaFlat, alpha)
-                    await self.doTrade(currencyPair = currencyPair, 
+                    await self.doTrade(currencyPair = currencyPair,
                                     buyExchangeName = buyExchangeName,
                                     buyPrice = askPrice,
                                     buyAmount = tradeAmount,
@@ -483,7 +487,7 @@ class ArbitrageMachine(object):
 
                 # logging.debug("%s->%s", exchangeAName, exchangeAQoutes)
                 # logging.debug("%s->%s", exchangeBName, exchangeBQoutes)
-                isArbitrage = await self.checkEntryAndArbitrage(currencyPair = currencyPair, 
+                isArbitrage = await self.checkEntryAndArbitrage(currencyPair = currencyPair,
                                             buyExchangeName = exchangeAName,
                                             askItems = exchangeAQoutes.getAsks(),
                                             sellExchangeName = exchangeBName,
