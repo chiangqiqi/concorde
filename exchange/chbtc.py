@@ -138,7 +138,7 @@ class Exchange(ExchangeBase):
         amount = float(orderJs['total_amount'])
         filledPrice = float(orderJs['trade_price'])
         filledAmount = float(orderJs['trade_amount'])
-        fee = float(orderJs['fees'])
+        fee = amount * price * 0.001
         orderJsState = int(orderJs['status'])
         if orderJsState == self.__order_status_open:
             state = OrderState.INITIAL

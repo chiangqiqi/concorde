@@ -2,3 +2,4 @@
 log.log*
 water.log
 *.yaml
+.DS_Store

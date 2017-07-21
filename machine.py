@@ -6,14 +6,13 @@ from __future__ import print_function
 from datetime import datetime
 import time
 import math
-import json, requests
 import sys, traceback
 import importlib
 import asyncio
 import logging
 import logging.config
 
-from finance.currency import Currency, CurrencyPair, currencyPair2Currency
+from finance.currency import Currency, currencyPair2Currency
 from finance.order import OrderState, ORDER_ID_FILLED_IMMEDIATELY
 from sms.ali_sms import AliSms
 
