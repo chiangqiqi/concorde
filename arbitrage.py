@@ -3,43 +3,15 @@
 # import numpy as np
 # import pandas as pd
 from __future__ import print_function
-from datetime import datetime
-import time
-import json, requests
-import time
-import importlib
 import asyncio
 import logging
 import logging.config
 import yaml
 import os
-import aiohttp
 import sys
 
-from finance.currency import Currency, CurrencyPair, getCurrencyPairByName
-from lib.yunbi.client import Client, get_api_path
-from lib.bter.client import Client as BterClient
-from lib.chbtc.client import Client as ChbtcClient
-from exchange.bter import Exchange as BterExchange
-from exchange.chbtc import Exchange as CHBTCExchange
-from exchange.btc38 import Exchange as Btc38Exchange
-from exchange.yunbi import Exchange as YunbiExchange
-from exchange.jubi import Exchange as JubiExchange
+from finance.currency import CurrencyPair
 from machine import ArbitrageMachine
-from sms.ali_sms import AliSms
-
-async def error(flag):
-    if flag:
-        raise ValueError("value error")
-    else:
-        return 1
-
-async def test(url="http://www.baidu.com"):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, timeout = 10) as resp:
-            resp_text = await resp.text()
-            print(resp.headers['Set-Cookie'])
-
 
 logging.config.fileConfig("./logging.config")
 

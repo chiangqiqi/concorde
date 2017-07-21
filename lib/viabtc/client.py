@@ -6,7 +6,7 @@ import time
 import logging
 import aiohttp
 
-BASE_URL = 'https://www.viabtc.cn'
+BASE_URL = 'https://www.viabtc.com'
 
 API_BASE_PATH = '{}/api/v1'.format(BASE_URL)
 API_PATH_DICT = {
