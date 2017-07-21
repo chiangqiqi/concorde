@@ -50,12 +50,11 @@ def main():
 
     d = {'xrp': CurrencyPair.XRP_CNY, 'BTS': CurrencyPair.BTS_CNY,
          'ETC': CurrencyPair.ETC_CNY, 'ETH': CurrencyPair.ETH_CNY,
-         'ANS': CurrencyPair.ANS_CNY}
-    
+         'ANS': CurrencyPair.ANS_CNY, 'ZEC': CurrencyPair.ZEC_CNY}
+
     coin = sys.argv[1]
     # cp = getCurrencyPairByName(d[sys.argv[1]])
     loop.run_until_complete(machine.run(d[coin]))
 
 if __name__ == '__main__':
     main()
-     
