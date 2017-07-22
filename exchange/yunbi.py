@@ -106,7 +106,7 @@ class Exchange(ExchangeBase):
                                                                 'side': self.__trade_type_buy,
                                                                 'price': price})
         if 'error' in resp:
-            (code, error_msg) = resp['error'].split(':')
+            (code, error_msg) = resp['error']['code'], resp['error']['message']
             raise ApiErrorException(code, error_msg)
         if 'id' not in resp:
             raise ApiErrorException('', resp)
@@ -119,7 +119,7 @@ class Exchange(ExchangeBase):
                                                                 'side': self.__trade_type_sell,
                                                                 'price': price})
         if 'error' in resp:
-            (code, error_msg) = resp['error'].split(':')
+            (code, error_msg) = resp['error']['code'], resp['error']['message']
             raise ApiErrorException(code, error_msg)
         if 'id' not in resp:
             raise ApiErrorException('', resp)
