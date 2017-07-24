@@ -47,18 +47,25 @@ class ExchangeTester:
         assert res.asks[0].price >= 0
 
     @async_test
-    def test_sell(self):
-        res = yield from self.exchange.sellAsync(CurrencyPair.ETH_CNY, 0.1, 2000)
+    def test_sell(self, coin=CurrencyPair.ETH_CNY, amount=0.1, price=2000):
+        res = yield from self.exchange.sellAsync(coin, amout, price)
         assert res > 0
 
     @async_test
-    def test_sell_and_check_status(self):
+    def test_sell_and_check_status(self, cp=CurrencyPair.ETH_CNY):
         # res just returns the order id
-        cp = CurrencyPair.ETH_CNY
         orderid = yield from self.exchange.sellAsync(cp, 0.1, 2000)
 
         order = yield from self.exchange.getOrderAsync(cp, orderid)
         assert order.buyOrSell == 'sell'
+
+    @async_test
+    def test_buy_and_check_status(self, cp=CurrencyPair.ETH_CNY):
+        # res just returns the order id
+        orderid = yield from self.exchange.buyAsync(cp, 1000, 0.05)
+
+        order = yield from self.exchange.getOrderAsync(cp, orderid)
+        assert order.buyOrSell == 'buy'
 
     @async_test
     def _get_order(self):
@@ -70,9 +77,6 @@ class ExchangeTester:
         self._get_cash()
         self._get_currency_amout()
 
-    def test_ordering(self):
-        self.test_sell()
-
 config = yaml.load(open('config.yaml', encoding='utf8'))
 
 def name2exchange(name):
@@ -82,18 +86,32 @@ def name2exchange(name):
 
 
 exchanges = ['yunbi', 'viabtc', 'chbtc']
-def __test_exchanges_get():
+def test_exchanges_get():
     for ex in exchanges:
         exchange = name2exchange(ex)
         tester = ExchangeTester(exchange)
         tester.test_get()
 
 exchanges = ['chbtc']
-def test_exchanges_order():
+def __test_exchanges_order():
     for ex in exchanges:
         exchange = name2exchange(ex)
         tester = ExchangeTester(exchange)
         tester.test_sell_and_check_status()
+
+
+class JubiPrecisonTest(unittest.TestCase):
+    def setUp(self):
+        exchange = name2exchange('jubi')
+        self.tester = ExchangeTester(exchange)
+        
+    def test_jubi_bts(self):
+        """
+        test if bts order is well placed
+        """
+        self.tester.test_buy_and_check_status(CurrencyPair.BTS_CNY)
+        self.tester.test_buy_and_check_status(CurrencyPair.XRP_CNY)
+
 
 if __name__ == '__main__':
     unittest.main()
