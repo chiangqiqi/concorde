@@ -6,6 +6,7 @@ sms:
   app_code: '6125ee74f7bd44ba9065f56a6672debb'
   sign_name: '壹刻珠宝'
   template_code: 'SMS_67155971'
+  middleman_addr: ''
 
 db:
   mongo:
