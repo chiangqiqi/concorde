@@ -21,7 +21,7 @@ waterLogger = logging.getLogger("water")
 class ArbitrageMachine(object):
     def __init__(self, config):
         self.config = config
-        self.smsClient = AliSms(config['sms'])
+        self.smsClient = TgMiddleMan(config['sms'])
         self.exchanges = {}
         exchanges = self.config['arbitrage']['exchanges']
         logging.info("initilizing %d exchange: %s", len(exchanges), exchanges)
