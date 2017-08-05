@@ -62,7 +62,7 @@ class ExchangeTester:
     @async_test
     def test_buy_and_check_status(self, cp=CurrencyPair.ETH_CNY):
         # res just returns the order id
-        orderid = yield from self.exchange.buyAsync(cp, 1000, 0.05)
+        orderid = yield from self.exchange.buyAsync(cp, 1000.0343401, 0.0512345002)
 
         order = yield from self.exchange.getOrderAsync(cp, orderid)
         assert order.buyOrSell == 'buy'
