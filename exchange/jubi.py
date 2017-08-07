@@ -15,6 +15,7 @@ JUBITradeFee = {
     CurrencyPair.DOGE_CNY: Fee(0.001, Fee.FeeTypes.PERC),
     CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
     CurrencyPair.ANS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+    CurrencyPair.NXT_CNY: Fee(0.001, Fee.FeeTypes.PERC),
 }
 
 JUBIWithdrawFee = {
@@ -33,6 +34,7 @@ class Exchange(ExchangeBase):
         Currency.ETC: "etc",
         Currency.ETH: "eth",
         Currency.XRP: "xrp",
+        Currency.NXT: "NXT",
         Currency.DOGE: "doge",
         Currency.ANS: "ans"
     }
@@ -43,6 +45,7 @@ class Exchange(ExchangeBase):
         CurrencyPair.ETC_CNY: "etc",
         CurrencyPair.ETH_CNY: "eth",
         CurrencyPair.XRP_CNY: "xrp",
+        CurrencyPair.NXT_CNY: "nxt",
         CurrencyPair.DOGE_CNY: "doge",
         CurrencyPair.ANS_CNY: "ans"
     }

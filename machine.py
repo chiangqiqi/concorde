@@ -14,7 +14,7 @@ import logging.config
 
 from finance.currency import Currency, currencyPair2Currency
 from finance.order import OrderState, ORDER_ID_FILLED_IMMEDIATELY
-from sms.ali_sms import AliSms
+from sms.ali_sms import TgMiddleMan 
 
 waterLogger = logging.getLogger("water")
 
@@ -112,17 +112,7 @@ class ArbitrageMachine(object):
         return state
 
     async def sendOpenOrderWarnSms(self, exchange, orderId, amount, price):
-        phonenum = self.config['sms']['notify_phonenum']
-        logging.info("sending open order warn sms to phonenum: %s", phonenum)
-        result = await self.smsClient.sendOpenOrderSms(phonenum = phonenum,
-                                                       exchange = exchange,
-                                                       orderId = orderId,
-                                                       amount = amount,
-                                                       price = price)
-        if not result['success']:
-            logging.warn("send sms to phonenum %s failed, error_msg: %s", phonenum, result['message'])
-
-    # async def sendOpenOrderSms(self, phonenum, exchange, orderId, amount, price):
+        result = await self.smsClient.sendOpenOrderSms(exchange, orderId, amount, price)
 
     async def doTrade(self,
                       currencyPair,

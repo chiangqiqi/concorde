@@ -31,6 +31,7 @@ class Exchange(ExchangeBase):
 		Currency.ZEC: "ZEC",
 		Currency.BTS: "BTS",
 		Currency.XRP: "XRP",
+		Currency.NXT: "NXT",
         Currency.QTUM: "QTUM"
 	}
 	__currency_pair_map = {
@@ -41,6 +42,7 @@ class Exchange(ExchangeBase):
 		CurrencyPair.ZEC_CNY: "zec_cny",
 		CurrencyPair.BTS_CNY: "bts_cny",
 		CurrencyPair.XRP_CNY: "xrp_cny",
+		CurrencyPair.NXT_CNY: "nxt_cny",
         CurrencyPair.QTUM_CNY: "qtum_cny"
 	}
 
