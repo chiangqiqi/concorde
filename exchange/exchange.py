@@ -34,17 +34,18 @@ class ExchangeBase(with_metaclass(abc.ABCMeta)):
     #amount - 交易数量
     #price - 交易单价
     #return: cny, amount * price * tradeRate，单位CNY
-    @abc.abstractmethod
     def calculateTradeFee(self, currencyPair, amount, price):
-        pass
+        fee = self.default_trade_fee
+        if currencyPair in self.TradeFee:
+            fee = self.TradeFee[currencyPair]
+        return fee.calculate_fee(amount * price)
 
-    ##
     #param:
     #amount - 提现数量
     #return: 手续费数量，单位个
-    @abc.abstractmethod
     def calculateWithdrawFee(self, currency, amount):
-        pass
+        return self.WithdrawFee[currency].calculate_fee(amount)
+
 
     @abc.abstractmethod
     async def getAccountInfo(self):
@@ -62,23 +63,27 @@ class ExchangeBase(with_metaclass(abc.ABCMeta)):
         most time, get cash async should be just inside the balance
         """
         resp =  await self.getAccountInfo()
-
         return round(float(resp['balances']['CNY']), 2)
 
-    @abc.abstractmethod
     async def getCurrencyAmountAsync(self, currency):
-        pass
+        info = await self.getAccountInfo()
+        return info['balances'][currency]
+
 
     @abc.abstractmethod
     async def getCurrencyAddressAsync(self, currency):
         pass
-
-    @abc.abstractmethod
+    
     async def buyAsync(self, currencyPair, amount, price):
-        pass
+        resp =  await self.tradeAsync(currencyPair, amount, price, self.trade_type_buy)
+        return resp
+
+    async def sellAsync(self, currencyPair, amount, price):
+        resp =  await self.tradeAsync(currencyPair, amount, price, self.trade_type_sell)
+        return resp
 
     @abc.abstractmethod
-    async def sellAsync(self, currencyPair, amount, price):
+    async def tradeAsync(self, currencyPair, amount, price, action):
         pass
 
     @abc.abstractmethod

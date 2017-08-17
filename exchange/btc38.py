@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import logging
+import json
+import aiohttp
 
 from lib.btc38.client import Client as Client
 from finance.currency import Currency, CurrencyPair
@@ -6,25 +9,7 @@ from finance.order import OrderState, OrderDirection, Order, ORDER_ID_FILLED_IMM
 from finance.quotes import Quotes, OrderBookItem
 from .exchange import ExchangeBase, Fee
 from .exception import *
-import logging
-import math
-import json
-import aiohttp
-
-BTC38TradeFee = {
-    CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-    CurrencyPair.XRP_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-    CurrencyPair.NXT_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-    CurrencyPair.DOGE_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-}
-
-BTC38WithdrawFee = {
-    Currency.CNY: Fee(0.01, Fee.FeeTypes.PERC),
-    Currency.BTS: Fee(0.01, Fee.FeeTypes.MIX, mix_fee2 = 1),
-    Currency.XRP: Fee(0.01, Fee.FeeTypes.PERC),
-    Currency.DOGE: Fee(0.01, Fee.FeeTypes.PERC),
-}
-
+from .utils import get_order_book_item, _floor
 
 OK_CODE = 1000
 class Exchange(ExchangeBase):
@@ -45,9 +30,20 @@ class Exchange(ExchangeBase):
         CurrencyPair.NXT_CNY: "nxt_cny",
         CurrencyPair.DOGE_CNY: "doge_cny",
     }
-
-    __trade_type_buy = 1
-    __trade_type_sell = 2
+    TradeFee = {
+        CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.XRP_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.DOGE_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+    }
+    default_trade_fee = Fee(0.001, Fee.FeeTypes.PERC)
+    WithdrawFee = {
+        Currency.CNY: Fee(0.01, Fee.FeeTypes.PERC),
+        Currency.BTS: Fee(0.01, Fee.FeeTypes.MIX, mix_fee2 = 1),
+        Currency.XRP: Fee(0.01, Fee.FeeTypes.PERC),
+        Currency.DOGE: Fee(0.01, Fee.FeeTypes.PERC),
+    }
+    trade_type_buy = 1
+    trade_type_sell = 2
 
     __order_status_open = 0 #待成交
     __order_status_cancelled = 1
@@ -57,12 +53,6 @@ class Exchange(ExchangeBase):
     def __init__(self, config):
         super().__init__(config)
         self.client = Client(config['access_key'], config['secret_key'], config['user_id'])
-
-    def calculateTradeFee(self, currencyPair, amount, price):
-        return BTC38TradeFee[currencyPair].calculate_fee(amount * price)
-
-    def calculateWithdrawFee(self, currency, amount):
-        return BTC38WithdrawFee[currency].calculate_fee(amount)
 
     async def getAccountInfo(self):
         resp =  await self.client.post('balances')
@@ -80,72 +70,33 @@ class Exchange(ExchangeBase):
         resp =  await self.client.get('depth', {'c': c, 'mk_type': mk_type})
         if 'bids' not in resp:
             raise ApiErrorException("", resp)
-        bids = list(map(lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1])), resp['bids']))
-        asks = list(map(lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1])), resp['asks']))
+        bids = list(map(get_order_book_item, resp['bids']))
+        asks = list(map(get_order_book_item, resp['asks']))
         quotes = Quotes(bids = bids, asks = asks)
         logging.debug("btc38 quotes: %s", quotes)
         return quotes
 
-    async def getCashAsync(self):
-        info = await self.getAccountInfo()
-        return info['balances'][Currency.CNY]
-
-    async def getCurrencyAmountAsync(self, currency):
-        info = await self.getAccountInfo()
-        return info['balances'][currency]
-
     async def getCurrencyAddressAsync(self, currency):
         raise NotImplementedError("btc38 do not have getCurrencyAddressAsync api")
 
-    async def buyAsync(self, currencyPair, amount, price):
+    async def tradeAsync(self, currencyPair, amount, price, action):
         logging.debug("btc38 buy %s, amount %s, price %s", currencyPair, amount, price)
         #特殊逻辑，每个币种的价格精确度不一样，必须调用方处理
-        floorPrice = price
-        if currencyPair == CurrencyPair.XRP_CNY:
-            floorPrice = self._floor(price, 4)
-        if currencyPair == CurrencyPair.NXT_CNY:
-            floorPrice = self._floor(price, 3)
-        elif currencyPair == CurrencyPair.DOGE_CNY:
-            floorPrice = self._floor(price, 5)
-        else:
-            floorPrice = self._floor(price, 4)
+        precision_dict = {CurrencyPair.XRP_CNY: 4, CurrencyPair.DOGE_CNY: 5,
+                          CurrencyPair.NXT_CNY: 3, CurrencyPair.ETH_CNY: 1,
+                          CurrencyPair.ETC_CNY: 2}
+
+        precision = precision_dict[currencyPair] if currencyPair in precision_dict else 6
+
+        floorPrice = _floor(price, precision)
 
         logging.debug("btc38 buy %s, floorPrice %s", currencyPair, floorPrice)
         (c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
         resp =  await self.client.post('order', {'coinname': c,
-                                                'mk_type': mk_type,
-                                                'amount': self._floor(amount,4),
-                                                'price': floorPrice,
-                                                'type': self.__trade_type_buy})
-        retAndId = resp.split('|')
-        result = retAndId[0]
-        id = ORDER_ID_FILLED_IMMEDIATELY
-        if len(retAndId) > 1:
-            id = retAndId[1]
-        if result != "succ":
-            raise ApiErrorException('', resp)
-        return id
-
-    async def sellAsync(self, currencyPair, amount, price):
-        logging.debug("btc38 sell %s, amount %s, price %s", currencyPair, amount, price)
-        #特殊逻辑，每个币种的价格精确度不一样，必须调用方处理
-        floorPrice = price
-        if currencyPair == CurrencyPair.XRP_CNY:
-            floorPrice = self._floor(price, 4)
-        if currencyPair == CurrencyPair.NXT_CNY:
-            floorPrice = self._floor(price, 3)
-        elif currencyPair == CurrencyPair.DOGE_CNY:
-            floorPrice = self._floor(price, 5)
-        else:
-            floorPrice = self._floor(price, 4)
-            
-        logging.debug("btc38 sell %s, floorPrice %s", currencyPair, floorPrice)
-        (c, mk_type) = self.__currency_pair_map[currencyPair].split("_")
-        resp =  await self.client.post('order', {'coinname': c,
-                                                'mk_type': mk_type,
-                                                'amount': self._floor(amount,6),
-                                                'price': floorPrice,
-                                                'type': self.__trade_type_sell})
+                                                 'mk_type': mk_type,
+                                                 'amount': _floor(amount,4),
+                                                 'price': floorPrice,
+                                                 'type': action})
         retAndId = resp.split('|')
         result = retAndId[0]
         id = ORDER_ID_FILLED_IMMEDIATELY
@@ -163,9 +114,6 @@ class Exchange(ExchangeBase):
         if resp != "succ":
             raise ApiErrorException('', resp)
         return True
-
-    def _floor(self, num, precision=3):
-        return round(num, precision)
 
     def _json_to_order(self, currencyPair, orderJs):
         id = orderJs['id']
@@ -244,20 +192,3 @@ class Exchange(ExchangeBase):
                     if ret['code'] != proxyCodeMap['SUCCESS'] or ret['code'] != proxyCodeMap['PROCESSING']:
                         raise ApiErrorException(ret['code'], ret['message'])
                     return True
-
-                    # if ret.code == proxyCodeMap.FAIL or ret.code == proxyCodeMap.SYSTEM_BUSY:
-                    #   logging.warn("btc38 withdraw failed, please check btc38 website see if you need re-login")
-                    #   return False
-                    # elif ret.code == proxyCodeMap.PARAMS_ERROR or ret.code == proxyCodeMap.INTERNAL_SERVER_ERROR:
-                    #   logging.warn("btc38 withdraw failed, please check your parameters or ProxyBrower server")
-                    #   return False
-                    # elif ret.code == proxyCodeMap.LIMIT:
-                    #   logging.warn("btc38 reach withdraw limit")
-                    #   return False
-                    # elif ret.code == proxyCodeMap.OVER_BALANCE:
-                    #   logging.warn("btc38 reach withdraw limit")
-                    #   return False
-                    # else:
-                    #   logging.info("btc38 withdraw success, currency %s, to_address %s, amount %s, memo %s", 
-                    #                currency, address, amount, memo)
-                    #   return True

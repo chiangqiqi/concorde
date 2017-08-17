@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import logging
+import json
 
 from lib.chbtc.client import Client as Client
 from finance.currency import Currency, CurrencyPair
@@ -6,19 +8,7 @@ from finance.order import OrderState, OrderDirection, Order, ORDER_ID_FILLED_IMM
 from finance.quotes import Quotes, OrderBookItem
 from .exchange import ExchangeBase, Fee
 from .exception import *
-import logging
-
-CHBTCTradeFee = {
-        CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-        CurrencyPair.ETH_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-        CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-}
-
-CHBTCWithdrawFee = {
-    Currency.ETC: Fee(0.01, Fee.FeeTypes.FIX),
-}
-
-import json
+from .utils import get_order_book_item
 
 OK_CODE = 1000
 class Exchange(ExchangeBase):
@@ -37,9 +27,20 @@ class Exchange(ExchangeBase):
         CurrencyPair.ETH_CNY: "eth_cny",
         CurrencyPair.BTS_CNY: "bts_cny"
     }
+    
+    TradeFee = {
+        CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.ETH_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+    }
 
-    __trade_type_buy = 1
-    __trade_type_sell = 0
+    default_trade_fee = Fee(0.001, Fee.FeeTypes.PERC)
+    WithdrawFee = {
+        Currency.ETC: Fee(0.01, Fee.FeeTypes.FIX),
+    }
+
+    trade_type_buy = 1
+    trade_type_sell = 0
 
     __order_status_open = 0 #待成交
     __order_status_cancelled = 1
@@ -49,9 +50,6 @@ class Exchange(ExchangeBase):
     def __init__(self, config):
         super().__init__(config)
         self.client = Client(config['access_key'], config['secret_key'])
-
-    def calculateTradeFee(self, currencyPair, amount, price):
-        return CHBTCTradeFee[currencyPair].calculate_fee(amount * price)
 
     def calculateWithdrawFee(self, currency, amount):
         return CHBTCWithdrawFee[currency].calculate_fee(amount)
@@ -71,26 +69,11 @@ class Exchange(ExchangeBase):
         resp =  await self.client.get('depth', {'currency': self.__currency_pair_map[currencyPair], 'size': size})
         if 'code' in resp and resp['code'] != OK_CODE:
             raise ApiErrorException(resp['code'], resp['message'])
-        bids = list(map(lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1])), resp['bids']))
-        asks = list(map(lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1])), resp['asks']))
+        bids = list(map(get_order_book_item, resp['bids']))
+        asks = list(map(get_order_book_item, resp['asks']))
         quotes = Quotes(bids = bids, asks = asks)
         logging.debug("chbtc quotes: %s", quotes)
         return quotes
-
-    async def getCashAsync(self):
-        resp =  await self.client.get('getAccountInfo')
-        if 'code' in resp and resp['code'] != OK_CODE:
-            raise ApiErrorException(resp['code'], resp['message'])
-        return round(float(resp['result']['balance']['CNY']['amount']), 2)
-
-    async def getCurrencyAmountAsync(self, currency):
-        resp =  await self.client.get('getAccountInfo')
-        if 'code' in resp and resp['code'] != OK_CODE:
-            raise ApiErrorException(resp['code'], resp['message'])
-        cur = self.__currency_map[currency].upper()
-        if cur not in resp['result']['balance']:
-            raise CurrencyNotExistException(currency)
-        return float(resp['result']['balance'][cur]['amount'])
 
     async def getCurrencyAddressAsync(self, currency):
         cur = self.__currency_map[currency]
@@ -99,22 +82,12 @@ class Exchange(ExchangeBase):
             raise ApiErrorException(resp['code'], resp['message'])
         return resp['message']['datas']['key']
 
-    async def buyAsync(self, currencyPair, amount, price):
+    async def tradeAsync(self, currencyPair, amount, price, action):
         logging.debug("chbtc buy %s, amount %s, price %s", currencyPair, amount, price)
         resp =  await self.client.get('order', {'currency': self.__currency_pair_map[currencyPair],
-                                           'amount': amount,
-                                           'price': price,
-                                           'tradeType': self.__trade_type_buy})
-        if 'code' in resp and resp['code'] != OK_CODE:
-            raise ApiErrorException(resp['code'], resp['message'])
-        return resp['id']
-
-    async def sellAsync(self, currencyPair, amount, price):
-        logging.debug("chbtc sell %s, amount %s, price %s", currencyPair, amount, price)
-        resp =  await self.client.get('order', {'currency': self.__currency_pair_map[currencyPair],
-                                           'amount': amount,
-                                           'price': price,
-                                           'tradeType': self.__trade_type_sell})
+                                                'amount': amount,
+                                                'price': price,
+                                                'tradeType': action})
         if 'code' in resp and resp['code'] != OK_CODE:
             raise ApiErrorException(resp['code'], resp['message'])
         return resp['id']

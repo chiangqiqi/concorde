@@ -4,17 +4,10 @@ from lib.yunbi.client import Client as YunbiClient, get_api_path
 from finance.currency import Currency, CurrencyPair
 from finance.order import OrderState, OrderDirection, Order, ORDER_ID_FILLED_IMMEDIATELY
 from finance.quotes import Quotes, OrderBookItem
+from .utils import get_order_book_item
 from .exchange import ExchangeBase, Fee
 from .exception import *
 import logging
-
-YunbiTradeFee = {
-    CurrencyPair.ETH_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-    CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-    CurrencyPair.ZEC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-    CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-    CurrencyPair.ANS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-}
 
 YunbiWithdrawFee = {
     Currency.CNY: Fee(0.001, Fee.FeeTypes.FIX),
@@ -47,18 +40,22 @@ class Exchange(ExchangeBase):
         CurrencyPair.QTUM_CNY: "qtumcny"
     }
 
-    __trade_type_buy = "buy"
-    __trade_type_sell = "sell"
+    trade_type_buy = "buy"
+    trade_type_sell = "sell"
+    
+    TradeFee = {
+        CurrencyPair.ETH_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.ZEC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.ANS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+    }
+
+    default_trade_fee = Fee(0.001, Fee.FeeTypes.PERC)
 
     def __init__(self, config):
         super().__init__(config)
         self.client = YunbiClient(config['access_key'], config['secret_key'])
-
-    def calculateTradeFee(self, currencyPair, amount, price):
-        return YunbiTradeFee[currencyPair].calculate_fee(amount * price)
-
-    def calculateWithdrawFee(self, currency, amount):
-        return YunbiWithdrawFee[currency].calculate_fee(amount)
 
     async def getAccountInfo(self):
         resp =  await self.client.get(get_api_path('members'))
@@ -78,9 +75,9 @@ class Exchange(ExchangeBase):
         if 'error' in resp:
             raise ApiErrorException(resp['error']['code'], resp['error']['message'])
 
-        bids = list(map(lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1])), resp['bids']))
-        asks = list(map(lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1])), resp['asks']))
-        quotes = Quotes(bids = bids, asks = asks)
+        bids = list(map(get_order_book_item, resp['bids']))
+        asks = list(map(get_order_book_item, resp['asks']))
+        quotes = Quotes(bids=bids, asks=asks)
         logging.debug("yunbi quotes: %s", quotes)
         return quotes
 
@@ -99,24 +96,11 @@ class Exchange(ExchangeBase):
             raise ApiErrorException(resp['error']['code'], resp['error']['message'])
         return resp['address']
 
-    async def buyAsync(self, currencyPair, amount, price):
+    async def tradeAsync(self, currencyPair, amount, price, action):
         logging.debug("yunbi buy %s, amount %s, price %s", currencyPair, amount, price)
         resp =  await self.client.post(get_api_path('orders'), {'market': self.__currency_pair_map[currencyPair],
                                                                 'volume': amount,
-                                                                'side': self.__trade_type_buy,
-                                                                'price': price})
-        if 'error' in resp:
-            (code, error_msg) = resp['error']['code'], resp['error']['message']
-            raise ApiErrorException(code, error_msg)
-        if 'id' not in resp:
-            raise ApiErrorException('', resp)
-        return resp['id']
-
-    async def sellAsync(self, currencyPair, amount, price):
-        logging.debug("yunbi sell %s, amount %s, price %s", currencyPair, amount, price)
-        resp =  await self.client.post(get_api_path('orders'), {'market': self.__currency_pair_map[currencyPair],
-                                                                'volume': amount,
-                                                                'side': self.__trade_type_sell,
+                                                                'side': action,
                                                                 'price': price})
         if 'error' in resp:
             (code, error_msg) = resp['error']['code'], resp['error']['message']
@@ -142,7 +126,7 @@ class Exchange(ExchangeBase):
         price = float(orderJs['price'])
         amount = float(orderJs['volume'])
         filledPrice = float(orderJs['avg_price'])
-        filledAmount = float(orderJs['executed_volume'])
+        filledAmount = float(orderJs['executed_volume'])        
         if 'feeValue' in orderJs:
             fee = float(orderJs['feeValue'])
         else:

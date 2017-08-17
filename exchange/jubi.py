@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import logging
+import math
 
 from lib.jubi.client import Client as Client
 from finance.currency import Currency, CurrencyPair
@@ -6,24 +8,7 @@ from finance.order import OrderState, OrderDirection, Order, ORDER_ID_FILLED_IMM
 from finance.quotes import Quotes, OrderBookItem
 from .exchange import ExchangeBase, Fee
 from .exception import *
-import logging
-import math
-
-JUBITradeFee = {
-    CurrencyPair.XRP_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-    CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-    CurrencyPair.DOGE_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-    CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-    CurrencyPair.ANS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-    CurrencyPair.NXT_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-}
-
-JUBIWithdrawFee = {
-    Currency.XRP: Fee(0.01, Fee.FeeTypes.PERC),
-    Currency.ETC: Fee(0.01, Fee.FeeTypes.FIX),
-    Currency.DOGE: Fee(0.01, Fee.FeeTypes.PERC),
-}
-
+from .utils import get_order_book_item, _floor
 
 class Exchange(ExchangeBase):
     __currency_map = {
@@ -49,9 +34,18 @@ class Exchange(ExchangeBase):
         CurrencyPair.DOGE_CNY: "doge",
         CurrencyPair.ANS_CNY: "ans"
     }
+    WithdrawFee = {
+        Currency.XRP: Fee(0.01, Fee.FeeTypes.PERC),
+        Currency.ETC: Fee(0.01, Fee.FeeTypes.FIX),
+        Currency.DOGE: Fee(0.01, Fee.FeeTypes.PERC),
+    }
+    TradeFee = {
+        CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+    }
 
-    __trade_type_buy = "buy"
-    __trade_type_sell = "sell"
+    default_trade_fee = Fee(0.001, Fee.FeeTypes.PERC)
+    trade_type_buy = "buy"
+    trade_type_sell = "sell"
 
     __order_status_open = "open" #待成交
     __order_status_new = "new" #待成交
@@ -61,17 +55,6 @@ class Exchange(ExchangeBase):
     def __init__(self, config):
         super().__init__(config)
         self.client = Client(config['access_key'], config['secret_key'])
-
-
-    def _floor(self, num, precision = 4):
-        multiplier = math.pow(10.0, precision)
-        return math.floor(num * multiplier) / multiplier
-
-    def calculateTradeFee(self, currencyPair, amount, price):
-        return JUBITradeFee[currencyPair].calculate_fee(amount * price)
-
-    def calculateWithdrawFee(self, currency, amount):
-        return JUBIWithdrawFee[currency].calculate_fee(amount)
 
     async def getAccountInfo(self):
         resp =  await self.client.post('balances')
@@ -93,19 +76,11 @@ class Exchange(ExchangeBase):
         resp =  await self.client.get('depth', {'coin': self.__currency_pair_map[currencyPair]})
         if 'result' in resp and resp['result'] is False:
             raise ApiErrorException(resp['code'], str(resp))
-        bids = list(map(lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1])), resp['bids']))
-        asks = list(map(lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1])), resp['asks']))
+        bids = list(map(get_order_book_item, resp['bids']))
+        asks = list(map(get_order_book_item, resp['asks']))
         quotes = Quotes(bids = bids, asks = asks)
         logging.debug("jubi quotes: %s", quotes)
         return quotes
-
-    async def getCashAsync(self):
-        info = await self.getAccountInfo()
-        return info['balances'][Currency.CNY]
-
-    async def getCurrencyAmountAsync(self, currency):
-        info = await self.getAccountInfo()
-        return info['balances'][currency]
 
     async def getCurrencyAddressAsync(self, currency):
         raise NotImplementedError("jubi do not have getCurrencyAddressAsync api")
@@ -115,34 +90,24 @@ class Exchange(ExchangeBase):
         action: buy or sell
         """
         logging.debug("jubi buy %s, amount %s, price %s", currencyPair, amount, price)
-
+        
         #特殊逻辑，每个币种的价格精确度不一样，必须调用方处理
-        # this fucing api has strange precision limit
         precision_dict = {CurrencyPair.XRP_CNY: 4, CurrencyPair.DOGE_CNY: 6,
                           CurrencyPair.ETC_CNY: 2, CurrencyPair.BTS_CNY: 3,
                           CurrencyPair.ANS_CNY:4}
 
         precision = precision_dict[currencyPair] if currencyPair in precision_dict else 6
 
-        floorPrice = self._floor(price, precision)
+        floorPrice = _floor(price, precision)
         logging.debug("jubi buy %s, floorPrice %s", currencyPair, floorPrice)
 
         resp =  await self.client.post('order', {'coin': self.__currency_pair_map[currencyPair],
-                                                 'amount': self._floor(amount, 4),
+                                                 'amount': _floor(amount, 4),
                                                  'price': floorPrice,
                                                  'type': action})
         
         if 'result' in resp and resp['result'] is False:
             raise ApiErrorException(resp['code'], str(resp))
-        return resp
-
-
-    async def buyAsync(self, currencyPair, amount, price):
-        resp =  await self.tradeAsync(currencyPair, amount, price, 'buy')
-        return resp['id']
-
-    async def sellAsync(self, currencyPair, amount, price):
-        resp =  await self.tradeAsync(currencyPair, amount, price, 'sell')
         return resp['id']
 
     async def cancelOrderAsync(self, currencyPair, id):
