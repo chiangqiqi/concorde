@@ -92,8 +92,10 @@ class Exchange(ExchangeBase):
         logging.debug("jubi buy %s, amount %s, price %s", currencyPair, amount, price)
         
         #特殊逻辑，每个币种的价格精确度不一样，必须调用方处理
-        precision_dict = {CurrencyPair.XRP_CNY: 4, CurrencyPair.DOGE_CNY: 6,
-                          CurrencyPair.ETC_CNY: 2, CurrencyPair.BTS_CNY: 3,
+        precision_dict = {CurrencyPair.XRP_CNY: 4,
+                          CurrencyPair.DOGE_CNY: 6,
+                          CurrencyPair.ETC_CNY: 2,
+                          CurrencyPair.BTS_CNY: 3,
                           CurrencyPair.ANS_CNY:4}
 
         precision = precision_dict[currencyPair] if currencyPair in precision_dict else 6
@@ -121,7 +123,7 @@ class Exchange(ExchangeBase):
     def _json_to_order(self, currencyPair, orderJs):
         id = orderJs['id']
         tradeDate = orderJs['datetime']
-        if orderJs['type'] == self.__trade_type_buy:
+        if orderJs['type'] == self.trade_type_buy:
             buyOrSell = OrderDirection.BUY
         else:
             buyOrSell = OrderDirection.SELL

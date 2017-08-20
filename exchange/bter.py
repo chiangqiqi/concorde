@@ -11,41 +11,46 @@ from .utils import get_order_book_item
 
 
 class Exchange(ExchangeBase):
-	__currency_map = {
-		Currency.CNY: "CNY",
-		Currency.BTC: "BTC",
-		Currency.LTC: "LTC",
-		Currency.ETC: "ETC",
-		Currency.ETH: "ETH",
-		Currency.ZEC: "ZEC",
-		Currency.BTS: "BTS",
-		Currency.XRP: "XRP",
-		Currency.NXT: "NXT",
+    __currency_map = {
+        Currency.CNY: "CNY",
+        Currency.BTC: "BTC",
+        Currency.LTC: "LTC",
+        Currency.ETC: "ETC",
+        Currency.ETH: "ETH",
+        Currency.EOS: "EOS",
+        Currency.ZEC: "ZEC",
+        Currency.BTS: "BTS",
+        Currency.XRP: "XRP",
+        Currency.NXT: "NXT",
         Currency.QTUM: "QTUM"
-	}
-	__currency_pair_map = {
-		CurrencyPair.BTC_CNY: "btc_cny",
-		CurrencyPair.LTC_CNY: "ltc_cny",
-		CurrencyPair.ETC_CNY: "etc_cny",
-		CurrencyPair.ETH_CNY: "eth_cny",
-		CurrencyPair.ZEC_CNY: "zec_cny",
-		CurrencyPair.BTS_CNY: "bts_cny",
-		CurrencyPair.XRP_CNY: "xrp_cny",
-		CurrencyPair.NXT_CNY: "nxt_cny",
+    }
+    __currency_pair_map = {
+        CurrencyPair.BTC_CNY: "btc_cny",
+        CurrencyPair.LTC_CNY: "ltc_cny",
+        CurrencyPair.ETC_CNY: "etc_cny",
+        CurrencyPair.ETH_CNY: "eth_cny",
+        CurrencyPair.EOS_CNY: "eos_cny",
+        CurrencyPair.ZEC_CNY: "zec_cny",
+        CurrencyPair.BTS_CNY: "bts_cny",
+        CurrencyPair.XRP_CNY: "xrp_cny",
+        CurrencyPair.NXT_CNY: "nxt_cny",
         CurrencyPair.QTUM_CNY: "qtum_cny"
     }
     TradeFee = {
         CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
         CurrencyPair.ZEC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-        CurrencyPair.BTS_CNY: Fee(0.002, Fee.FeeTypes.PERC),
-        CurrencyPair.XRP_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.BTS_CNY: Fee(0.0012, Fee.FeeTypes.PERC),
+        CurrencyPair.XRP_CNY: Fee(0.0012, Fee.FeeTypes.PERC),
     }
     WithdrawFee = {
             Currency.ETC: Fee(0.01, Fee.FeeTypes.FIX),
             Currency.ZEC: Fee(0.0006, Fee.FeeTypes.FIX),
             Currency.BTS: Fee(0.01, Fee.FeeTypes.MIX, mix_fee2 = 1),
     }
-    default_trade_fee = Fee(0.001, Fee.FeeTypes.PERC)
+    default_trade_fee = Fee(0.0012, Fee.FeeTypes.PERC)
+    trade_type_buy = "buy"
+    trade_type_sell = "sell"
+
     def __init__(self, config):
         super().__init__(config)
         self.client = BterClient(config['access_key'], config['secret_key'])
@@ -75,15 +80,6 @@ class Exchange(ExchangeBase):
         logging.debug("bter quotes: %s", quotes)
         return quotes
 
-    async def getCurrencyAmountAsync(self, currency):
-        resp =  await self.client.post(get_api_path('balances'))
-        if str(resp['result']).lower() != 'true':
-            raise ApiErrorException(resp['code'], resp['message'])
-        cur = self.__currency_map[currency]
-        if cur not in resp['available']:
-            raise CurrencyNotExistException(currency)
-        return float(resp['available'][cur])
-
     async def getCurrencyAddressAsync(self, currency):
         cur = self.__currency_map[currency]
         resp = await self.client.post(get_api_path('deposite_address'), {'currency': cur})
@@ -91,20 +87,13 @@ class Exchange(ExchangeBase):
             raise ApiErrorException(resp['code'], resp['message'])
         return resp['addr']
 
-    async def buyAsync(self, currencyPair, amount, price):
+    async def tradeAsync(self, currencyPair, amount, price, action):
         logging.debug("bter buy %s, amount %s, price %s", currencyPair, amount, price)
-        resp =  await self.client.post(get_api_path('buy'), {'currencyPair': self.__currency_pair_map[currencyPair],
-                                         'amount': amount,
-                                         'rate': price})
-        if str(resp['result']).lower() != 'true':
-            raise ApiErrorException(resp['code'], resp['message'])
-        return resp['orderNumber']
-
-    async def sellAsync(self, currencyPair, amount, price):
-        logging.debug("bter sell %s, amount %s, price %s", currencyPair, amount, price)
-        resp =  await self.client.post(get_api_path('sell'), {'currencyPair': self.__currency_pair_map[currencyPair],
-                                          'amount': amount,
-                                          'rate': price})
+        path = get_api_path(action)
+        resp =  await self.client.post(get_api_path('buy'),
+                                       {'currencyPair': self.__currency_pair_map[currencyPair],
+                                        'amount': amount,
+                                        'rate': price})
         if str(resp['result']).lower() != 'true':
             raise ApiErrorException(resp['code'], resp['message'])
         return resp['orderNumber']

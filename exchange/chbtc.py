@@ -18,13 +18,15 @@ class Exchange(ExchangeBase):
         Currency.LTC: "ltc",
         Currency.ETC: "etc",
         Currency.ETH: "eth",
-        Currency.BTS: "BTS"
+        Currency.EOS: "eos",
+        Currency.BTS: "bts"
     }
     __currency_pair_map = {
         CurrencyPair.BTC_CNY: "btc_cny",
         CurrencyPair.LTC_CNY: "ltc_cny",
         CurrencyPair.ETC_CNY: "etc_cny",
         CurrencyPair.ETH_CNY: "eth_cny",
+        CurrencyPair.EOS_CNY: "eos_cny",
         CurrencyPair.BTS_CNY: "bts_cny"
     }
     
