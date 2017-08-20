@@ -82,8 +82,11 @@ class Exchange(ExchangeBase):
     async def tradeAsync(self, currencyPair, amount, price, action):
         logging.debug("btc38 buy %s, amount %s, price %s", currencyPair, amount, price)
         #特殊逻辑，每个币种的价格精确度不一样，必须调用方处理
-        precision_dict = {CurrencyPair.XRP_CNY: 4, CurrencyPair.DOGE_CNY: 5,
-                          CurrencyPair.NXT_CNY: 3, CurrencyPair.ETH_CNY: 1,
+        precision_dict = {CurrencyPair.XRP_CNY: 4,
+                          CurrencyPair.DOGE_CNY: 5,
+                          CurrencyPair.NXT_CNY: 3,
+                          CurrencyPair.BTS_CNY: 3,
+                          CurrencyPair.ETH_CNY: 1,
                           CurrencyPair.ETC_CNY: 2}
 
         precision = precision_dict[currencyPair] if currencyPair in precision_dict else 6
