@@ -18,8 +18,9 @@ class Exchange(ExchangeBase):
         Currency.LTC: "ltc",
         Currency.ETC: "etc",
         Currency.ETH: "eth",
+        Currency.EOS: "eos",
         Currency.XRP: "xrp",
-        Currency.NXT: "NXT",
+        Currency.NXT: "nxt",
         Currency.DOGE: "doge",
         Currency.ANS: "ans"
     }
@@ -29,6 +30,7 @@ class Exchange(ExchangeBase):
         CurrencyPair.LTC_CNY: "ltc",
         CurrencyPair.ETC_CNY: "etc",
         CurrencyPair.ETH_CNY: "eth",
+        CurrencyPair.EOS_CNY: "eos",
         CurrencyPair.XRP_CNY: "xrp",
         CurrencyPair.NXT_CNY: "nxt",
         CurrencyPair.DOGE_CNY: "doge",
@@ -76,6 +78,7 @@ class Exchange(ExchangeBase):
         resp =  await self.client.get('depth', {'coin': self.__currency_pair_map[currencyPair]})
         if 'result' in resp and resp['result'] is False:
             raise ApiErrorException(resp['code'], str(resp))
+        
         bids = list(map(get_order_book_item, resp['bids']))
         asks = list(map(get_order_book_item, resp['asks']))
         quotes = Quotes(bids = bids, asks = asks)

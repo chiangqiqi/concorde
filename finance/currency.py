@@ -39,6 +39,7 @@ def currencyPair2Currency(currencyPair):
         CurrencyPair.ZEC_CNY: Currency.ZEC,
         CurrencyPair.ETH_CNY: Currency.ETH,
         CurrencyPair.EOS_CNY: Currency.EOS,
+        CurrencyPair.QTUM_CNY: Currency.QTUM,
         CurrencyPair.ETC_CNY: Currency.ETC,
         CurrencyPair.BTS_CNY: Currency.BTS,
         CurrencyPair.DASH_CNY: Currency.DASH,

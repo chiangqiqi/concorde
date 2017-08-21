@@ -7,8 +7,7 @@ from finance.order import OrderState, OrderDirection, Order, ORDER_ID_FILLED_IMM
 from finance.quotes import Quotes, OrderBookItem
 from .exchange import ExchangeBase, Fee
 from .exception import *
-from .utils import get_order_book_item
-
+from .utils import get_order_book_item, _floor
 
 class Exchange(ExchangeBase):
     __currency_map = {
@@ -90,10 +89,10 @@ class Exchange(ExchangeBase):
     async def tradeAsync(self, currencyPair, amount, price, action):
         logging.debug("bter buy %s, amount %s, price %s", currencyPair, amount, price)
         path = get_api_path(action)
-        resp =  await self.client.post(get_api_path('buy'),
-                                       {'currencyPair': self.__currency_pair_map[currencyPair],
-                                        'amount': amount,
-                                        'rate': price})
+        resp = await self.client.post(path,
+                                      {'currencyPair': self.__currency_pair_map[currencyPair],
+                                       'amount': amount,
+                                       'rate': price})
         if str(resp['result']).lower() != 'true':
             raise ApiErrorException(resp['code'], resp['message'])
         return resp['orderNumber']

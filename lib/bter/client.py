@@ -112,7 +112,7 @@ class Client():
         header = {'KEY': self.auth.access_key, 'SIGN': signature, 'Content-Type': 'application/x-www-form-urlencoded'}
         logging.debug("bter client post url: %s, data: %s, header: %s", url, data, header)
         async with aiohttp.ClientSession() as session:
-                async with session.post(url, data = data.encode("utf8"), headers = header, timeout = 20) as resp:
+                async with session.post(url, data=data.encode("utf8"), headers=header, timeout=10) as resp:
                     resp_text = await resp.text()
                     logging.debug("bter resp: %s", resp_text)
                     try:

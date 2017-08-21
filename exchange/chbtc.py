@@ -19,6 +19,7 @@ class Exchange(ExchangeBase):
         Currency.ETC: "etc",
         Currency.ETH: "eth",
         Currency.EOS: "eos",
+        Currency.QTUM: "QTUM",
         Currency.BTS: "bts"
     }
     __currency_pair_map = {
@@ -27,6 +28,7 @@ class Exchange(ExchangeBase):
         CurrencyPair.ETC_CNY: "etc_cny",
         CurrencyPair.ETH_CNY: "eth_cny",
         CurrencyPair.EOS_CNY: "eos_cny",
+        CurrencyPair.QTUM_CNY: "qtum_cny",
         CurrencyPair.BTS_CNY: "bts_cny"
     }
     
