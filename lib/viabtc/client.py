@@ -52,8 +52,6 @@ class Client(object):
         async with aiohttp.ClientSession() as session:
             async with session.get(url, params=params, headers=self.headers) as resp:
                 d = await resp.text()
-                import pdb; pdb.set_trace()
-
                 return json.loads(d)
 
     async def post(self, method, params):

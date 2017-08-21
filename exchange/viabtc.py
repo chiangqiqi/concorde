@@ -1,25 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import logging
+import json
+
 from lib.viabtc.client import Client as Client
 from finance.currency import Currency, CurrencyPair
 from finance.order import OrderState, OrderDirection, Order, ORDER_ID_FILLED_IMMEDIATELY
 from finance.quotes import Quotes, OrderBookItem
 from .exchange import ExchangeBase, Fee
 from .exception import *
-import logging
-
-TradeFee = {
-        CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-        CurrencyPair.ETH_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-        CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-        CurrencyPair.ZEC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-}
-
-WithdrawFee = {
-    Currency.ETC: Fee(0.01, Fee.FeeTypes.FIX),
-}
-
-import json
+from .utils import get_order_book_item 
 
 OK_CODE = 0
 class Exchange(ExchangeBase):
@@ -28,6 +18,7 @@ class Exchange(ExchangeBase):
         Currency.BTC: "BTC",
         Currency.LTC: "LTC",
         Currency.ETC: "ETC",
+        Currency.ZEC: "ZEC",
         Currency.ETH: "ETH",
     }
     __currency_pair_map = {
@@ -37,16 +28,23 @@ class Exchange(ExchangeBase):
         CurrencyPair.ETH_CNY: "ETHCNY",
         CurrencyPair.ZEC_CNY: "ZECCNY",
     }
+    TradeFee = {
+        CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.ETH_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.ZEC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+    }
+    WithdrawFee = {
+        Currency.ETC: Fee(0.01, Fee.FeeTypes.FIX),
+    }
+    trade_type_buy = "buy"
+    trade_type_sell = "sell"
+    
+    default_trade_fee = Fee(0.001, Fee.FeeTypes.PERC)
 
     def __init__(self, config):
         super().__init__(config)
         self.client = Client(config['access_key'], config['secret_key'])
-
-    def calculateTradeFee(self, currencyPair, amount, price):
-        return TradeFee[currencyPair].calculate_fee(amount * price)
-
-    def calculateWithdrawFee(self, currency, amount):
-        return WithdrawFee[currency].calculate_fee(amount)
 
     async def getAccountInfo(self):
         resp =  await self.client.get('balances')
@@ -69,14 +67,11 @@ class Exchange(ExchangeBase):
         if 'code' in resp and resp['code'] != OK_CODE:
             raise ApiErrorException(resp['code'], resp['message'])
 
-        format_item = lambda x: OrderBookItem(price = float(x[0]), amount = float(x[1]))
-
         data = resp['data']
-        bids = [format_item(r) for r in data['bids']]
-        asks = [format_item(r) for r in data['asks']]
+        bids = [get_order_book_item(r) for r in data['bids']]
+        asks = [get_order_book_item(r) for r in data['asks']]
 
         quotes = Quotes(bids = bids, asks = asks)
-        logging.debug("quotes: %s", quotes)
         return quotes
 
 
@@ -113,12 +108,6 @@ class Exchange(ExchangeBase):
             raise ApiErrorException(resp['code'], resp['message'])
 
         return resp['data']['id']
-
-    async def buyAsync(self, currencyPair, amount, price):
-        return await self.tradeAsync(currencyPair, amount, price, 'buy')
-
-    async def sellAsync(self, currencyPair, amount, price):
-        return await self.tradeAsync(currencyPair, amount, price, 'sell')
 
     async def cancelOrderAsync(self, currencyPair, id):
         raise NotImplementedError('not implemented')
