@@ -9,7 +9,7 @@ from finance.order import OrderState, OrderDirection, Order, ORDER_ID_FILLED_IMM
 from finance.quotes import Quotes, OrderBookItem
 from .exchange import ExchangeBase, Fee
 from .exception import *
-from .utils import get_order_book_item 
+from .utils import get_order_book_item
 
 OK_CODE = 0
 class Exchange(ExchangeBase):
@@ -97,8 +97,8 @@ class Exchange(ExchangeBase):
         """
         logging.debug("chbtc buy %s, amount %s, price %s", currencyPair, amount, price)
         params = {'market': self.__currency_pair_map[currencyPair],
-                  'amount': amount,
-                  'price': price,
+                  'amount': '{:.4f}'.format(amount),
+                  'price': '{:.6f}'.format(price),
                   'type': action,
                   'source_id': 'abc'
         }
