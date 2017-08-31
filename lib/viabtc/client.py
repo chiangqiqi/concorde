@@ -58,6 +58,7 @@ class Client(object):
         url = get_api_path(method)
         params['access_id'] = self.access_id
         self.__set_authorization(params)
+        import pdb; pdb.set_trace()
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=params, headers=self.headers, timeout = 20) as resp:

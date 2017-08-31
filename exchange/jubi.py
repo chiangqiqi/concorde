@@ -22,6 +22,7 @@ class Exchange(ExchangeBase):
         Currency.XRP: "xrp",
         Currency.NXT: "nxt",
         Currency.DOGE: "doge",
+        Currency.QTUM: "qtum",
         Currency.ANS: "ans"
     }
     __currency_pair_map = {
@@ -34,6 +35,7 @@ class Exchange(ExchangeBase):
         CurrencyPair.XRP_CNY: "xrp",
         CurrencyPair.NXT_CNY: "nxt",
         CurrencyPair.DOGE_CNY: "doge",
+        CurrencyPair.QTUM_CNY: "qtum",
         CurrencyPair.ANS_CNY: "ans"
     }
     WithdrawFee = {
@@ -97,6 +99,7 @@ class Exchange(ExchangeBase):
         #特殊逻辑，每个币种的价格精确度不一样，必须调用方处理
         precision_dict = {CurrencyPair.XRP_CNY: 4,
                           CurrencyPair.DOGE_CNY: 6,
+                          CurrencyPair.QTUM_CNY: 2,
                           CurrencyPair.ETC_CNY: 2,
                           CurrencyPair.BTS_CNY: 3,
                           CurrencyPair.ANS_CNY:4}
