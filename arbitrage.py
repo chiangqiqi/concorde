@@ -25,6 +25,7 @@ def main():
          'ANS': CurrencyPair.ANS_CNY, 'ZEC': CurrencyPair.ZEC_CNY,
          'NXT': CurrencyPair.NXT_CNY,
          'QTUM': CurrencyPair.QTUM_CNY,
+         'BCC': CurrencyPair.BCC_CNY,
          'EOS': CurrencyPair.EOS_CNY,
     }
 

@@ -13,17 +13,19 @@ from .utils import get_order_book_item
 OK_CODE = 1000
 class Exchange(ExchangeBase):
     __currency_map = {
-        Currency.CNY: "CNY",
+        Currency.CNY: "cny",
         Currency.BTC: "btc",
+        Currency.BCC: "bcc",
         Currency.LTC: "ltc",
         Currency.ETC: "etc",
         Currency.ETH: "eth",
         Currency.EOS: "eos",
-        Currency.QTUM: "QTUM",
+        Currency.QTUM: "qtum",
         Currency.BTS: "bts"
     }
     __currency_pair_map = {
         CurrencyPair.BTC_CNY: "btc_cny",
+        CurrencyPair.BCC_CNY: "bcc_cny",
         CurrencyPair.LTC_CNY: "ltc_cny",
         CurrencyPair.ETC_CNY: "etc_cny",
         CurrencyPair.ETH_CNY: "eth_cny",

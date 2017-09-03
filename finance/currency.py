@@ -5,6 +5,7 @@ def enum(**enums):
 
 Currency = enum(CNY = "CNY",
                 BTC = "BTC",
+                BCC = "BCC",
                 LTC = "LTC",
                 ZEC = "ZEC",
                 ETH = "ETH",
@@ -20,6 +21,7 @@ Currency = enum(CNY = "CNY",
 
 CurrencyPair = enum(BTC_CNY = "BTC_CNY",
                     LTC_CNY = "LTC_CNY",
+                    BCC_CNY = "BCC_CNY",
                     ZEC_CNY = "ZEC_CNY",
                     ETH_CNY = "ETH_CNY",
                     EOS_CNY = "EOS_CNY",
@@ -35,6 +37,7 @@ CurrencyPair = enum(BTC_CNY = "BTC_CNY",
 def currencyPair2Currency(currencyPair):
     __CurrencyPair2Currency = {
         CurrencyPair.BTC_CNY: Currency.BTC,
+        CurrencyPair.BCC_CNY: Currency.BCC,
         CurrencyPair.LTC_CNY: Currency.LTC,
         CurrencyPair.ZEC_CNY: Currency.ZEC,
         CurrencyPair.ETH_CNY: Currency.ETH,
