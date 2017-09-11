@@ -35,12 +35,12 @@ class Exchange(ExchangeBase):
     }
     
     TradeFee = {
-        CurrencyPair.ETC_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-        CurrencyPair.ETH_CNY: Fee(0.001, Fee.FeeTypes.PERC),
-        CurrencyPair.BTS_CNY: Fee(0.001, Fee.FeeTypes.PERC),
+        CurrencyPair.ETC_CNY: Fee(0.002, Fee.FeeTypes.PERC),
+        CurrencyPair.ETH_CNY: Fee(0.002, Fee.FeeTypes.PERC),
+        CurrencyPair.BTS_CNY: Fee(0.002, Fee.FeeTypes.PERC),
     }
 
-    default_trade_fee = Fee(0.001, Fee.FeeTypes.PERC)
+    default_trade_fee = Fee(0.002, Fee.FeeTypes.PERC)
     WithdrawFee = {
         Currency.ETC: Fee(0.01, Fee.FeeTypes.FIX),
     }
@@ -109,7 +109,7 @@ class Exchange(ExchangeBase):
     def _json_to_order(self, currencyPair, orderJs):
         id = orderJs['id']
         tradeDate = int(orderJs['trade_date'])
-        if int(orderJs['type']) == self.__trade_type_buy:
+        if int(orderJs['type']) == self.trade_type_buy:
             buyOrSell = OrderDirection.BUY
         else:
             buyOrSell = OrderDirection.SELL

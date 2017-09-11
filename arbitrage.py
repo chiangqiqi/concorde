@@ -24,7 +24,9 @@ def main():
          'ETC': CurrencyPair.ETC_CNY, 'ETH': CurrencyPair.ETH_CNY,
          'ANS': CurrencyPair.ANS_CNY, 'ZEC': CurrencyPair.ZEC_CNY,
          'NXT': CurrencyPair.NXT_CNY,
+         'BTC': CurrencyPair.BTC_CNY,
          'QTUM': CurrencyPair.QTUM_CNY,
+         'LTC': CurrencyPair.LTC_CNY,
          'BCC': CurrencyPair.BCC_CNY,
          'EOS': CurrencyPair.EOS_CNY,
     }
