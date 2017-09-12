@@ -134,13 +134,13 @@ class ArbitrageMachine(object):
 
         # get retry config
         buyMaxOrderRetry = filter(lambda x: x['name'] == buyExchangeName,
-                                self.config['exchange']).__next__()['max_order_retry']
+                                  self.config['exchange']).__next__()['max_order_retry']
         buyMaxCancelOrderRetry = filter(lambda x: x['name'] == buyExchangeName,
-                                self.config['exchange']).__next__()['max_cancel_order_retry']
+                                        self.config['exchange']).__next__()['max_cancel_order_retry']
         sellMaxOrderRetry = filter(lambda x: x['name'] == sellExchangeName,
-                                self.config['exchange']).__next__()['max_order_retry']
+                                   self.config['exchange']).__next__()['max_order_retry']
         sellMaxCancelOrderRetry = filter(lambda x: x['name'] == sellExchangeName,
-                                self.config['exchange']).__next__()['max_cancel_order_retry']
+                                         self.config['exchange']).__next__()['max_cancel_order_retry']
 
         # make order
         (buyOrderId, sellOrderId) = await asyncio.gather(
@@ -155,24 +155,25 @@ class ArbitrageMachine(object):
                          buyExchangeName, sellExchangeName)
             return
 
+        # 特殊逻辑，短暂sleep 500毫秒一下，防止太快查不到订单（主要是jubi网)
+        await asyncio.sleep(0.5)
+        (buyOrderState, sellOrderState) = await asyncio.gather(
+            self.waitOrderToBeFilled(currencyPair, buyExchangeName, buyOrderId, waitSeconds),
+            self.waitOrderToBeFilled(currencyPair, sellExchangeName, sellOrderId, waitSeconds))
+        buyOrderStateStr = str(buyOrderState)
+        sellOrderStateStr = str(sellOrderState)
+
         # 两者下单都成功
         if buyOrderId is not None and sellOrderId is not None:
             logging.info("place order to %s(buyPrice: %s, buyAmount: %s) and %s(sellPrice: %s, sellAmount: %s) success",
                          buyExchangeName, buyPrice, buyAmount, sellExchangeName, sellPrice, sellAmount)
 
-            # TODO: wait order to be fill
+            # wait order to be fill
             logging.info("now wait orders to be filled, wait %s seconds at max.", waitSeconds)
-            # 特殊逻辑，短暂sleep 500毫秒一下，防止太快查不到订单（主要是jubi网)
-            await asyncio.sleep(0.5)
-            (buyOrderState, sellOrderState) = await asyncio.gather(
-                self.waitOrderToBeFilled(currencyPair, buyExchangeName, buyOrderId, waitSeconds),
-                self.waitOrderToBeFilled(currencyPair, sellExchangeName, sellOrderId, waitSeconds))
             logging.info("buyOrderState %s, sellOrderState %s", buyOrderState, sellOrderState)
 
-            buyOrderStateStr = str(buyOrderState)
             if buyOrderState == OrderState.INITIAL:
                 buyOrderStateStr = "OPEN"
-            sellOrderStateStr = str(sellOrderState)
             if sellOrderState == OrderState.INITIAL:
                 sellOrderStateStr = "OPEN"
 
@@ -186,70 +187,38 @@ class ArbitrageMachine(object):
                 logging.warn("sell order(%s) is not filled in exchange %s in %s seconds",
                     sellOrderId, sellExchangeName, waitSeconds)
                 await self.sendOpenOrderWarnSms(sellExchangeName, sellOrderId, sellAmount, sellPrice)
-
-            #流水日志
-            water = {"time": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                     "buyExchange": buyExchangeName,
-                     "sellExchange": sellExchangeName,
-                     "buyPrice": buyPrice,
-                     "buyAmount": buyAmount,
-                     "buyOrderId": buyOrderId,
-                     "buyOrderState": buyOrderStateStr,
-                     "sellPrice": sellPrice,
-                     "sellAmount": sellAmount,
-                     "sellOrderId": sellOrderId,
-                     "sellOrderState": sellOrderStateStr,
-                     "tradeCost": tradeCost,
-                     "alphaFlat": alphaFlat,
-                     "alpha": alpha}
-            waterLogger.info("%s", water)
-            return
-
         # cancel order if exist failed
         if buyOrderId is not None:
             logging.warn("doTrade place order in %s success but failed in %s", buyExchangeName, sellExchangeName)
             if buyOrderId != ORDER_ID_FILLED_IMMEDIATELY:
                 cancelSucess = await self.cancelOrderWithRetry(currencyPair, buyExchangeName, buyOrderId, buyMaxCancelOrderRetry)
-            #TODO: 报警，有open orders存在
+            # 报警，有open orders存在
             await self.sendOpenOrderWarnSms(sellExchangeName, "failed", sellAmount, sellPrice)
+            buyOrderStateStr = 'Failed'
             #流水日志
-            water = {"time": datetime.now(),
-                     "buyExchange": buyExchangeName,
-                     "sellExchange": sellExchangeName,
-                     "buyPrice": buyPrice,
-                     "buyAmount": buyAmount,
-                     "buyOrderId": buyOrderId,
-                     "buyOrderState": "PartiallyFilledOrFilledOrCancelled",
-                     "sellPrice": sellPrice,
-                     "sellAmount": sellAmount,
-                     "sellOrderId": sellOrderId,
-                     "sellOrderState": "Failed",
-                     "tradeCost": tradeCost,
-                     "alphaFlat": alphaFlat,
-                     "alpha": alpha}
-            waterLogger.info("%s", water)
         if sellOrderId is not None:
             logging.warn("doTrade place order in %s success but failed in %s", sellExchangeName, buyExchangeName)
             if buyOrderId != ORDER_ID_FILLED_IMMEDIATELY:
                 cancelSucess = await self.cancelOrderWithRetry(currencyPair, sellExchangeName, sellOrderId, sellMaxCancelOrderRetry)
-            #TODO: 报警，有open orders存在
+            # 报警，有open orders存在
             await self.sendOpenOrderWarnSms(buyExchangeName, "failed", buyAmount, buyPrice)
+            sellOrderStateStr = 'Failed'
             #流水日志
-            water = {"time": datetime.now(),
-                     "buyExchange": buyExchangeName,
-                     "sellExchange": sellExchangeName,
-                     "buyPrice": buyPrice,
-                     "buyAmount": buyAmount,
-                     "buyOrderId": buyOrderId,
-                     "buyOrderState": "Failed",
-                     "sellPrice": sellPrice,
-                     "sellAmount": sellAmount,
-                     "sellOrderId": sellOrderId,
-                     "sellOrderState": "PartiallyFilledOrFilledOrCancelled",
-                     "tradeCost": tradeCost,
-                     "alphaFlat": alphaFlat,
-                     "alpha": alpha}
-            waterLogger.info("%s", water)
+        water = {"time": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                 "buyExchange": buyExchangeName,
+                 "sellExchange": sellExchangeName,
+                 "buyPrice": buyPrice,
+                 "buyAmount": buyAmount,
+                 "buyOrderId": buyOrderId,
+                 "buyOrderState": buyOrderStateStr,
+                 "sellPrice": sellPrice,
+                 "sellAmount": sellAmount,
+                 "sellOrderId": sellOrderId,
+                 "sellOrderState": sellOrderStateStr,
+                 "tradeCost": tradeCost,
+                 "alphaFlat": alphaFlat,
+                 "alpha": alpha}
+        waterLogger.info("%s", water)
 
     async def notEnoughBalanceToTrade(self, currencyPair, buyExchangeName, buyPrice, sellExchangeName):
         currency = currencyPair2Currency(currencyPair)
@@ -260,9 +229,7 @@ class ArbitrageMachine(object):
         sellExchangeCash = self.exchanges[sellExchangeName].accountInfo['balances'][Currency.CNY]
         buyExchangeCoinAmount = self.exchanges[buyExchangeName].accountInfo['balances'][currency]
         sellExchangeCoinAmount = self.exchanges[sellExchangeName].accountInfo['balances'][currency]
-        # ((buyExchangeCash, buyExchangeCoinAmount),  (sellExchangeCash, sellExchangeCoinAmount)) = \
-        #   await asyncio.gather(self.exchanges[buyExchangeName].getMultipleCurrencyAmountAsync(Currency.CNY, currency),
-        #                        self.exchanges[sellExchangeName].getMultipleCurrencyAmountAsync(Currency.CNY, currency))
+
         logging.debug("[%s]buyExchangeCash %f, buyExchangeCoinAmount %f", buyExchangeName, buyExchangeCash, buyExchangeCoinAmount)
         logging.debug("[%s]sellExchangeCash %f, sellExchangeCoinAmount %f", sellExchangeName, sellExchangeCash, sellExchangeCoinAmount)
 
@@ -300,6 +267,17 @@ class ArbitrageMachine(object):
             return False
 
         return True
+
+    @staticmethod
+    def arbitrage_possiblilty(askItems, bidItems):
+        
+        if (bidItems[0].price <= askItems[0].price):
+            logging.info("[ask %.6f(%.6f)], [bid %.6f(%.6f)], no alpha",
+                         askItems[0].price, askItems[0].amount,
+                         bidItems[0].price, bidItems[0].amount)
+            return False
+        return True
+
 
     # return True if arbitrage exist and order success else False
     async def checkEntryAndArbitrage(self,
@@ -353,22 +331,19 @@ class ArbitrageMachine(object):
         gainTarget = self.determineGainTarget(currencyPair, buyExchangeCoinAmount, sellExchangeCoinAmount)
 
         #判断是否能够套利
+        slippage_price = lambda price: price * (1.0 - allowSlippagePerc)
         for bidItem in bidItems:
             bidPrice = bidItem.price
             logging.info("adjust bidPrice, allowSlippagePerc is %.6f, bidPrice %f, adjBidPrice %f",
-                        allowSlippagePerc, bidPrice, bidPrice * (1.0 - allowSlippagePerc))
-            bidPrice = bidPrice * (1.0 - allowSlippagePerc)
+                         allowSlippagePerc, bidPrice, slippage_price(bidPrice))
+            bidPrice = slippage_price(bidPrice)
             bidAmount = bidItem.amount
-            if (bidPrice <= askItems[0].price):
-                logging.info("%s[ask %.6f(%.6f)], %s[bid %.6f(%.6f)], no alpha",
-                            buyExchangeName, askItems[0].price, askItems[0].amount,
-                            sellExchangeName, bidPrice, bidAmount)
-                break
             for askItem in askItems:
+                # update_account_info()
                 askPrice = askItem.price
                 logging.info("adjust askPrice, allowSlippagePerc is %.6f, askPrice %f, adjAskPrice %f",
-                            allowSlippagePerc, askPrice, askPrice * (1.0 + allowSlippagePerc))
-                askPrice = askPrice * (1.0 + allowSlippagePerc)
+                             allowSlippagePerc, askPrice, slippage_price(askPrice))
+                askPrice = slippage_price(askPrice)
                 askAmount = askItem.amount
 
                 # no alpha
@@ -403,17 +378,19 @@ class ArbitrageMachine(object):
                 #计算各种费用
                 buyValue = askPrice * tradeAmount
                 sellValue = bidPrice * tradeAmount
-                tradeCost = self.exchanges[buyExchangeName].calculateTradeFee(currencyPair, tradeAmount, askPrice) + \
-                             self.exchanges[sellExchangeName].calculateTradeFee(currencyPair, tradeAmount, bidPrice)
+                tradeCost = buyexchange.calculateTradeFee(currencyPair, tradeAmount, askPrice) + \
+                             sellexchange.calculateTradeFee(currencyPair, tradeAmount, bidPrice)
                 withdrawCost = 0.0
                 if usingWithdraw:
-                    withdrawCost += self.exchanges[buyExchangeName].calculateWithdrawFee(currency, tradeAmount) * bidPrice
-                    withdrawCost += self.exchanges[sellExchangeName].calculateWithdrawFee(Currency.CNY, sellValue)
+                    withdrawCost += buyexchange.calculateWithdrawFee(currency, tradeAmount) * bidPrice
+                    withdrawCost += sellexchange.calculateWithdrawFee(Currency.CNY, sellValue)
 
                 #计算收益
                 alphaFlat = sellValue - buyValue - tradeCost
+
                 if usingWithdraw:
                     alphaFlat -= withdrawCost
+
                 alpha = (alphaFlat) / buyValue
                 if alpha >= riskAlpha: #risk, 潜在风险，有可能是api返回了错误的价格信息，此时不交易
                     logging.warn("alpha %s >> riskAlpha(%s), maybe risk", riskAlpha)
@@ -427,16 +404,17 @@ class ArbitrageMachine(object):
                         "buyValue=%.2f, sellValue=%.2f, tradeCost=%.2f, withdrawCost=%.2f, alphaFlat=%.2f, alpha = %f",
                         buyExchangeName, askPrice, askAmount, sellExchangeName, bidPrice, bidAmount,
                         buyExchangeName, sellExchangeName, buyValue, sellValue, tradeCost, withdrawCost, alphaFlat, alpha)
-                    await self.doTrade(currencyPair = currencyPair,
-                                    buyExchangeName = buyExchangeName,
-                                    buyPrice = askPrice,
-                                    buyAmount = tradeAmount,
-                                    sellExchangeName = sellExchangeName,
-                                    sellPrice = bidPrice,
-                                    sellAmount = tradeAmount,
-                                    tradeCost = tradeCost,
-                                    alphaFlat = alphaFlat,
-                                    alpha = alpha)
+                    await self.doTrade(
+                        currencyPair = currencyPair,
+                        buyExchangeName = buyExchangeName,
+                        buyPrice = askPrice,
+                        buyAmount = tradeAmount,
+                        sellExchangeName = sellExchangeName,
+                        sellPrice = bidPrice,
+                        sellAmount = tradeAmount,
+                        tradeCost = tradeCost,
+                        alphaFlat = alphaFlat,
+                        alpha = alpha)
                     return True
                 else:
                     logging.info("%s[ask %.6f(%.6f)], %s[bid %.6f(%.6f)](%s->%s)"+
@@ -449,47 +427,44 @@ class ArbitrageMachine(object):
     async def arbitrage(self, currencyPair):
         exchangeNames = self.config['arbitrage'][str(currencyPair)]['arbitrage_exchanges']
         logging.info("arbitrage %s, in exchanges %s", currencyPair, exchangeNames)
-        i = 0
+        
+        async def update_account_info():
+            await asyncio.gather(self.exchanges[exchangeAName].updateAccountInfo(),
+                                      self.exchanges[exchangeBName].updateAccountInfo())
+
+
         for i in range(len(exchangeNames)):
-            exchangeAName = exchangeNames[i]
-            j = i + 1
-            while j < len(exchangeNames):
+            for j in range(len(exchangeNames)):
+                if i == j:
+                    continue
+                
+                exchangeAName = exchangeNames[i]
                 exchangeBName = exchangeNames[j]
 
                 #先update账户信息
-                await asyncio.gather(self.exchanges[exchangeAName].updateAccountInfo(),
-                                     self.exchanges[exchangeBName].updateAccountInfo())
+                
+                await update_account_info()
 
-                (exchangeAQoutes, exchangeBQoutes) = await asyncio.gather(self.exchanges[exchangeAName].getQuotes(currencyPair),
-                                                                          self.exchanges[exchangeBName].getQuotes(currencyPair))
+                (qoutes_a, qoutes_b) = await asyncio.gather(
+                    self.exchanges[exchangeAName].getQuotes(currencyPair),
+                    self.exchanges[exchangeBName].getQuotes(currencyPair))
                 # 风险控制，有些交易所返回的深度数据居然会是错的
-                topBid = exchangeBQoutes.getBids()[0].price
-                topAsk = exchangeBQoutes.getAsks()[0].price
-                if topAsk <= topBid:
-                    logging.warn("risk!!!%s qoutes maybe wrong, ask %f, bid %f, stop arbitrage", exchangeBName, topAsk, topBid)
-                    continue
-                topBid = exchangeAQoutes.getBids()[0].price
-                topAsk = exchangeAQoutes.getAsks()[0].price
-                if topAsk <= topBid:
-                    logging.warn("risk!!!%s qoutes maybe wrong, ask %f, bid %f, stop arbitrage", exchangeAName, topAsk, topBid)
+                if qoutes_a.non_sense() or qoutes_b.non_sense():
                     continue
 
-                # logging.debug("%s->%s", exchangeAName, exchangeAQoutes)
-                # logging.debug("%s->%s", exchangeBName, exchangeBQoutes)
-                isArbitrage = await self.checkEntryAndArbitrage(currencyPair = currencyPair,
-                                            buyExchangeName = exchangeAName,
-                                            askItems = exchangeAQoutes.getAsks(),
-                                            sellExchangeName = exchangeBName,
-                                            bidItems = exchangeBQoutes.getBids())
-                if isArbitrage:
+                askItems = qoutes_a.getAsks()
+                bidItems = qoutes_b.getBids()
+
+                if not self.arbitrage_possiblilty(askItems, bidItems):
                     return
-                else:
-                    await self.checkEntryAndArbitrage(currencyPair = currencyPair,
-                                                buyExchangeName = exchangeBName,
-                                                askItems = exchangeBQoutes.getAsks(),
-                                                sellExchangeName = exchangeAName,
-                                                bidItems = exchangeAQoutes.getBids())
-                j += 1
+
+                await self.checkEntryAndArbitrage(
+                    currencyPair=currencyPair,
+                    buyExchangeName=exchangeAName,
+                    askItems=askItems,
+                    sellExchangeName=exchangeBName,
+                    bidItems=bidItems
+                    )
 
     async def run(self, currencyPair):
         prev_check_time = None
