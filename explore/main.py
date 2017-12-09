@@ -34,13 +34,39 @@ polo.returnTicker
 top_price = lambda l: float(l[0][0])
 price_diff = lambda r,x,y: (x-y)/x> r
 
+
+class ArbitrageEx:
+    """abstract class for client
+    """
+    def __init__(self, args):
+        "docstring"
+        pass
+
+def PoloWrapper:
+    def __init__(self, pkey, skey):
+        """
+        :param: pkey: public key
+        :param: skey: secret key
+        """
+        self.client = Poloniex("DJWOINQK-6RANSEOQ-S0K6E1RH-OLRSHH0K",
+                "c267c3fcf439bdca2673a0ff1420a407970f8b85bbe44cbea64801a6b213047c3021178b20fd47a55d599f120368f557d48eb1bcc8e1bfa59d0d32e9c7140bbe")
+        
+    def trade(self, coin, amount, trade_type):
+        """trade_type: buy or sell
+        """
+        
+        
+
+    def balance(self):
+        return self.
+
 def check_price_for_arbi():
     polo_price = polo.returnOrderBook("USDT_ETH")
     bina_price = binance.get_order_book(symbol="ETHUSDT")
 
     # 买一价和卖一价, bid is higher than asks
-    p_ask, p_bid = top_price(polo_price['asks']), top_price(bina_price['asks'])
-    b_ask, b_bid = top_price(polo_price['bids']), top_price(bina_price['bids'])
+    p_ask, b_ask = top_price(polo_price['asks']), top_price(bina_price['asks'])
+    p_bid, b_bid = top_price(polo_price['bids']), top_price(bina_price['bids'])
 
     ratio = 0.002
 
