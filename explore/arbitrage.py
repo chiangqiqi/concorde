@@ -148,23 +148,25 @@ binance = BinanceWrapper("C9Qc9I3ge6Nz9oUH3cATNXx1rf0PtWwFyKHtklvXwn7TwDWlwCWAZk
                          "MUwvS9Brw30ciofOhQTuU2gTUnuDCGElgocZDLH8FpwMnRDhqqskUeGNahTFgNqJ")
 
 
-def check_price_for_arbi():
+def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
     """keep in mind  ask price is higher than 
+    coinB: 基准货币，比如 btc, usdt
+    coinA: 交易货币
     """
-    polo_price = polo.depth("USDT_ETH")
-    bina_price = binance.depth("ETHUSDT")
+    bina_str = "{}{}".format(coinA, coinB)
+    polo_str = "{}_{}".format(coinB, coinA)
+
+    polo_price = polo.depth(polo_str)
+    bina_price = binance.depth(bina_str)
 
     # 买一价和卖一价, bid is higher than asks
     p_ask, b_ask = top_price(polo_price['asks']), top_price(bina_price['asks'])
     p_bid, b_bid = top_price(polo_price['bids']), top_price(bina_price['bids'])
 
-    ratio = 0.001
-
     print("binance price is {}, {}".format(b_ask, b_bid))
     print("poloniex price is {}, {}".format(p_ask, p_bid))
 
     # 最小交易量
-    threshold = 0.01
     # a 平台 bid 价格超过b 平台 ask 的价格时候才有套利机会
     if price_diff(ratio, b_bid, p_ask):
         print("poloniex ask price  {} is lower than binance bid price {}".format(p_ask, b_bid))
@@ -172,12 +174,12 @@ def check_price_for_arbi():
         b_sell_price,p_buy_price,amt = amount_and_price(format_ticker(polo_price['asks']),
                                                         format_ticker(bina_price['bids']), ratio)
 
-        b_eth_amt = float(binance.balance('ETH'))
+        b_eth_amt = float(binance.balance(coinA))
         amt = min(amt, b_eth_amt)
         # limit precision
         amt = round(amt, 3)
         if amt> threshold:
-            binance.trade("ETHUSDT", b_sell_price, amt, "Sell")
+            binance.trade(bina_str, b_sell_price, amt, "Sell")
         else:
             print("not enogh usdt {} to trade".format(b_eth_amt))
 
@@ -186,7 +188,7 @@ def check_price_for_arbi():
         p_sell_price,b_buy_price,amt = amount_and_price(format_ticker(bina_price['asks']),
                                                         format_ticker(polo_price['bids']), ratio)
 
-        b_usdt_amt = float(binance.balance('USDT'))
+        b_usdt_amt = float(binance.balance(coinB))
         
         # cut by a little margin to avoid lot error
         amt = min(amt, b_usdt_amt/b_buy_price * 0.9)
@@ -194,16 +196,23 @@ def check_price_for_arbi():
         amt = round(amt, 3)
         
         if amt> threshold:
-            binance.trade("ETHUSDT", b_buy_price, amt, "Buy")
+            binance.trade(bina_str, b_buy_price, amt, "Buy")
         else:
             print("not enogh usdt {} to trade".format(b_usdt_amt))
 
 import time
+import sys
 
-if __name__ == '__main__':
+def main():
+    coina = sys.argv[1]
+    coinb = sys.argv[2]
     while True:
         try:
-            check_price_for_arbi()
+            check_price_for_arbi(coina, coinb)
             time.sleep(0.5)
-        except:
+        except Exception as e:
+            print(e)
             continue
+
+if __name__ == '__main__':
+    main()
