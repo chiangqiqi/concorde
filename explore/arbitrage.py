@@ -174,7 +174,8 @@ def check_price_for_arbi():
 
         b_eth_amt = float(binance.balance('ETH'))
         amt = min(amt, b_eth_amt)
-
+        # limit precision
+        amt = round(amt, 3)
         if amt> threshold:
             binance.trade("ETHUSDT", b_sell_price, amt, "Sell")
         else:
@@ -185,11 +186,13 @@ def check_price_for_arbi():
         p_sell_price,b_buy_price,amt = amount_and_price(format_ticker(bina_price['asks']),
                                                         format_ticker(polo_price['bids']), ratio)
 
-
         b_usdt_amt = float(binance.balance('USDT'))
         
-        amt = min(amt, b_usdt_amt/b_buy_price)
+        # cut by a little margin to avoid lot error
+        amt = min(amt, b_usdt_amt/b_buy_price * 0.9)
 
+        amt = round(amt, 3)
+        
         if amt> threshold:
             binance.trade("ETHUSDT", b_buy_price, amt, "Buy")
         else:
