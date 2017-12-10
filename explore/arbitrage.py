@@ -170,7 +170,7 @@ def check_price_for_arbi():
         print("poloniex ask price  {} is lower than binance bid price {}".format(p_ask, b_bid))
         # b 网执行卖单， p 网执行卖单
         b_sell_price,p_buy_price,amt = amount_and_price(format_ticker(polo_price['asks']),
-                                                        format_ticker(bina_price['bids']))
+                                                        format_ticker(bina_price['bids']), ratio)
 
         b_eth_amt = float(binance.balance('ETH'))
         amt = min(amt, b_eth_amt)
@@ -195,6 +195,9 @@ def check_price_for_arbi():
         else:
             print("not enogh usdt {} to trade".format(b_usdt_amt))
 
+import time
+
 if __name__ == '__main__':
     while True:
         check_price_for_arbi()
+        time.sleep(2)
