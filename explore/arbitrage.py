@@ -19,13 +19,6 @@ import logging
 # Secret
 # c267c3fcf439bdca2673a0ff1420a407970f8b85bbe44cbea64801a6b213047c3021178b20fd47a55d599f120368f557d48eb1bcc8e1bfa59d0d32e9c7140bbe
 
-
-# polo = Poloniex("DJWOINQK-6RANSEOQ-S0K6E1RH-OLRSHH0K",
-                # "c267c3fcf439bdca2673a0ff1420a407970f8b85bbe44cbea64801a6b213047c3021178b20fd47a55d599f120368f557d48eb1bcc8e1bfa59d0d32e9c7140bbe")
-
-# binance = Binance("C9Qc9I3ge6Nz9oUH3cATNXx1rf0PtWwFyKHtklvXwn7TwDWlwCWAZkvJYlHUV7aO",
-# "MUwvS9Brw30ciofOhQTuU2gTUnuDCGElgocZDLH8FpwMnRDhqqskUeGNahTFgNqJ")
-
 """
 polo.returnTicker
 """
@@ -67,13 +60,16 @@ class PoloWrapper:
         elif trade_side == "Sell":
             self.client.sell(currency_pair, price, amount)
 
-    def balance(self, currency):
+    def balance(self, currency=None):
+        if not currency:
+            return self.client.returnBalances()
+
         return self.client.returnBalances()[currency]
 
     def depth(self, currency_pair):
         return self.client.returnOrderBook(currency_pair)
 
-from binance.enums import SIDE_BUY,SIDE_SELL,ORDER_TYPE_MARKET 
+from binance.enums import SIDE_BUY,SIDE_SELL,ORDER_TYPE_LIMIT,TIME_IN_FORCE_IOC,TIME_IN_FORCE_GTC
 
 class BinanceWrapper:
     """Simple binance api wrapper
@@ -94,22 +90,27 @@ class BinanceWrapper:
             ttype = SIDE_BUY
         elif trade_side == "Sell":
             ttype = SIDE_SELL
-
+        
         order = self.client.create_order(
             symbol=currency_pair,
-            side=SIDE_BUY,
+            side=ttype,
             type=ORDER_TYPE_LIMIT,
             quantity=amount,
-            price=price)
+            price=price,
+            timeInForce=TIME_IN_FORCE_GTC)
 
         print("place a sell order in binance {} {} {}".format(currency_pair, price, amount))
 
 
-    def balance(self, currency):
+    def balance(self, currency=None):
         account_info = self.client.get_account()
         balances = account_info["balances"]
-        
-        balances_dict = dict([(rec['assert'], rec['free']) for rec in balances_dict])
+
+
+        balances_dict = dict([(rec['asset'], rec['free']) for rec in balances])
+
+        if not currency:
+            return balances_dict
 
         return balances_dict[currency]
 
@@ -120,13 +121,13 @@ class BinanceWrapper:
 from itertools import takewhile
 import functools
 
-def amount_and_price(bask, abid):
+def amount_and_price(bask, abid, ratio):
     """return buy price and sell price for two exchange depth array, and the amount
     bid is smaller than 
     """
     topbid,topask = top_price(abid),top_price(bask)
     
-    condi = functools.partial(price_diff, 0.002)
+    condi = functools.partial(price_diff, ratio)
     ask_chi = list(takewhile(lambda x: condi(topbid, x[0]), bask))
     bid_chi = list(takewhile(lambda x: condi(x[0], topask), abid))
 
@@ -147,7 +148,6 @@ binance = BinanceWrapper("C9Qc9I3ge6Nz9oUH3cATNXx1rf0PtWwFyKHtklvXwn7TwDWlwCWAZk
                          "MUwvS9Brw30ciofOhQTuU2gTUnuDCGElgocZDLH8FpwMnRDhqqskUeGNahTFgNqJ")
 
 
-
 def check_price_for_arbi():
     """keep in mind  ask price is higher than 
     """
@@ -158,35 +158,42 @@ def check_price_for_arbi():
     p_ask, b_ask = top_price(polo_price['asks']), top_price(bina_price['asks'])
     p_bid, b_bid = top_price(polo_price['bids']), top_price(bina_price['bids'])
 
-    ratio = 0.002
+    ratio = 0.001
 
     print("binance price is {}, {}".format(b_ask, b_bid))
     print("poloniex price is {}, {}".format(p_ask, p_bid))
+
+    # 最小交易量
+    threshold = 0.01
     # a 平台 bid 价格超过b 平台 ask 的价格时候才有套利机会
-    if price_diff(0.002, b_bid, p_ask):
+    if price_diff(ratio, b_bid, p_ask):
+        print("poloniex ask price  {} is lower than binance bid price {}".format(p_ask, b_bid))
         # b 网执行卖单， p 网执行卖单
         b_sell_price,p_buy_price,amt = amount_and_price(format_ticker(polo_price['asks']),
                                                         format_ticker(bina_price['bids']))
 
-
-        b_eth_amt = binance.balance()['ETH']
+        b_eth_amt = float(binance.balance('ETH'))
         amt = min(amt, b_eth_amt)
-        binance.trade("ETHUSDT", b_sell_price, amt, "Sell")
 
-        print("poloniex ask price  {} is higher than binance bid price {}".format(p_ask, b_bid))
+        if amt> threshold:
+            binance.trade("ETHUSDT", b_sell_price, amt, "Sell")
+        else:
+            print("not enogh usdt {} to trade".format(b_usdt_amt))
 
-    if price_diff(0.002, p_bid, b_ask):
-        print("binance ask price  {} is higher than poloniex bid price {}".format(b_ask, p_bid))
+    if price_diff(ratio, p_bid, b_ask):
+        print("binance ask price  {} is lower than poloniex bid price {}".format(b_ask, p_bid))
         p_sell_price,b_buy_price,amt = amount_and_price(format_ticker(bina_price['asks']),
-                                                        format_ticker(polo_price['bids']))
+                                                        format_ticker(polo_price['bids']), ratio)
 
 
-        b_usdt_amt = binance.balance()['USDT']
+        b_usdt_amt = float(binance.balance('USDT'))
         
         amt = min(amt, b_usdt_amt/b_buy_price)
-        binance.trade("ETHUSDT", b_buy_price, amt, "Sell")
 
-
+        if amt> threshold:
+            binance.trade("ETHUSDT", b_buy_price, amt, "Buy")
+        else:
+            print("not enogh usdt {} to trade".format(b_usdt_amt))
 
 if __name__ == '__main__':
     while True:
