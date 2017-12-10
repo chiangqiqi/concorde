@@ -179,7 +179,7 @@ def check_price_for_arbi():
         if amt> threshold:
             binance.trade("ETHUSDT", b_sell_price, amt, "Sell")
         else:
-            print("not enogh usdt {} to trade".format(b_usdt_amt))
+            print("not enogh usdt {} to trade".format(b_eth_amt))
 
     if price_diff(ratio, p_bid, b_ask):
         print("binance ask price  {} is lower than poloniex bid price {}".format(b_ask, p_bid))
@@ -202,5 +202,8 @@ import time
 
 if __name__ == '__main__':
     while True:
-        check_price_for_arbi()
-        time.sleep(2)
+        try:
+            check_price_for_arbi()
+            time.sleep(0.5)
+        except:
+            continue
