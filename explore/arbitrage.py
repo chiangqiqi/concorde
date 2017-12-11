@@ -1,23 +1,9 @@
-# from poloniex import 
+import logging
+import pandas as pd
 from binance.client import Client as Binance
-
-# import binance.
 from poloniex import Poloniex
 
-import logging
-
-# Binance :
-# API Key:
-# C9Qc9I3ge6Nz9oUH3cATNXx1rf0PtWwFyKHtklvXwn7TwDWlwCWAZkvJYlHUV7aO
-# Secret:
-# MUwvS9Brw30ciofOhQTuU2gTUnuDCGElgocZDLH8FpwMnRDhqqskUeGNahTFgNqJ
-
-# poloniex
-
-# API Key
-# DJWOINQK-6RANSEOQ-S0K6E1RH-OLRSHH0K
-# Secret
-# c267c3fcf439bdca2673a0ff1420a407970f8b85bbe44cbea64801a6b213047c3021178b20fd47a55d599f120368f557d48eb1bcc8e1bfa59d0d32e9c7140bbe
+logging.basicConfig(filename='arbitrage.log',level=logging.INFO)
 
 """
 polo.returnTicker
@@ -27,16 +13,6 @@ polo.returnTicker
 top_price = lambda l: float(l[0][0])
 price_diff = lambda r,x,y: (x-y)/x> r
 
-from enum import *
-
-class ArbitrageEx:
-    """abstract class for client
-    """
-    def __init__(self, args):
-        "docstring"
-        pass
-
-import pandas as pd
 
 parsedepth = lambda x: float(x)
 
@@ -99,7 +75,7 @@ class BinanceWrapper:
             price=price,
             timeInForce=TIME_IN_FORCE_GTC)
 
-        print("place a sell order in binance {} {} {}".format(currency_pair, price, amount))
+        logging.info("place a {} order in binance {} {} {}".format(trade_side, currency_pair, price, amount))
 
 
     def balance(self, currency=None):
@@ -163,13 +139,13 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
     p_ask, b_ask = top_price(polo_price['asks']), top_price(bina_price['asks'])
     p_bid, b_bid = top_price(polo_price['bids']), top_price(bina_price['bids'])
 
-    print("binance price is {}, {}".format(b_ask, b_bid))
-    print("poloniex price is {}, {}".format(p_ask, p_bid))
+    logging.info("binance price is {}, {}".format(b_ask, b_bid))
+    logging.info("poloniex price is {}, {}".format(p_ask, p_bid))
 
     # 最小交易量
     # a 平台 bid 价格超过b 平台 ask 的价格时候才有套利机会
     if price_diff(ratio, b_bid, p_ask):
-        print("poloniex ask price  {} is lower than binance bid price {}".format(p_ask, b_bid))
+        logging.info("poloniex ask price  {} is lower than binance bid price {}".format(p_ask, b_bid))
         # b 网执行卖单， p 网执行卖单
         b_sell_price,p_buy_price,amt = amount_and_price(format_ticker(polo_price['asks']),
                                                         format_ticker(bina_price['bids']), ratio)
@@ -181,10 +157,10 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
         if amt> threshold:
             binance.trade(bina_str, b_sell_price, amt, "Sell")
         else:
-            print("not enogh usdt {} to trade".format(b_eth_amt))
+            logging.info("not enogh usdt {} to trade".format(b_eth_amt))
 
     if price_diff(ratio, p_bid, b_ask):
-        print("binance ask price  {} is lower than poloniex bid price {}".format(b_ask, p_bid))
+        logging.info("binance ask price  {} is lower than poloniex bid price {}".format(b_ask, p_bid))
         p_sell_price,b_buy_price,amt = amount_and_price(format_ticker(bina_price['asks']),
                                                         format_ticker(polo_price['bids']), ratio)
 
@@ -198,7 +174,7 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
         if amt> threshold:
             binance.trade(bina_str, b_buy_price, amt, "Buy")
         else:
-            print("not enogh usdt {} to trade".format(b_usdt_amt))
+            logging.info("not enogh usdt {} to trade".format(b_usdt_amt))
 
 import time
 import sys
@@ -206,12 +182,14 @@ import sys
 def main():
     coina = sys.argv[1]
     coinb = sys.argv[2]
+
+
     while True:
         try:
             check_price_for_arbi(coina, coinb)
             time.sleep(0.5)
         except Exception as e:
-            print(e)
+            logging.warning(e)
             continue
 
 if __name__ == '__main__':
