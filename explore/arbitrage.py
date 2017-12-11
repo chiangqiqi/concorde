@@ -155,7 +155,7 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
         # limit precision
         amt = round(amt * 0.999, 4)
         if amt> threshold:
-            binance.trade(bina_str, b_sell_price, amt * 0.999, "Sell")
+            binance.trade(bina_str, b_sell_price, amt, "Sell")
         else:
             logging.info("not enogh usdt {} to trade".format(b_eth_amt))
 
