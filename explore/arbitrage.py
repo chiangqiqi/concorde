@@ -3,7 +3,7 @@ import pandas as pd
 from binance.client import Client as Binance
 from poloniex import Poloniex
 
-logging.basicConfig(filename='arbitrage.log',level=logging.INFO)
+logging.basicConfig(filename='arbitrage.log',format='%(asctime)s %(message)s',level=logging.INFO)
 
 """
 polo.returnTicker
@@ -153,9 +153,9 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
         b_eth_amt = float(binance.balance(coinA))
         amt = min(amt, b_eth_amt)
         # limit precision
-        amt = round(amt, 3)
+        amt = round(amt * 0.999, 4)
         if amt> threshold:
-            binance.trade(bina_str, b_sell_price, amt, "Sell")
+            binance.trade(bina_str, b_sell_price, amt * 0.999, "Sell")
         else:
             logging.info("not enogh usdt {} to trade".format(b_eth_amt))
 
@@ -167,9 +167,9 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
         b_usdt_amt = float(binance.balance(coinB))
         
         # cut by a little margin to avoid lot error
-        amt = min(amt, b_usdt_amt/b_buy_price * 0.9)
+        amt = min(amt, b_usdt_amt/b_buy_price)
 
-        amt = round(amt, 3)
+        amt = round(amt * 0.999, 4)
         
         if amt> threshold:
             binance.trade(bina_str, b_buy_price, amt, "Buy")
