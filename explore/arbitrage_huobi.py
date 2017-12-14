@@ -1,9 +1,9 @@
 import logging
 import pandas as pd
 
-from .exchanges import BinanceWrapper,PoloWrapper
+from exchanges import BinanceWrapper,PoloWrapper,HuobiWrapper
 
-logging.basicConfig(filename='arbitrage.log',format='%(asctime)s %(message)s',level=logging.INFO)
+logging.basicConfig(filename='arbitrage_huobi.log',format='%(asctime)s %(message)s',level=logging.INFO)
 
 """
 polo.returnTicker
@@ -40,12 +40,10 @@ def amount_and_price(bask, abid, ratio):
 
 format_ticker = lambda l: [(float(x[0]), float(x[1])) for x in l]
 
-polo = PoloWrapper("DJWOINQK-6RANSEOQ-S0K6E1RH-OLRSHH0K",
-                   "c267c3fcf439bdca2673a0ff1420a407970f8b85bbe44cbea64801a6b213047c3021178b20fd47a55d599f120368f557d48eb1bcc8e1bfa59d0d32e9c7140bbe")
-
 binance = BinanceWrapper("C9Qc9I3ge6Nz9oUH3cATNXx1rf0PtWwFyKHtklvXwn7TwDWlwCWAZkvJYlHUV7aO",
                          "MUwvS9Brw30ciofOhQTuU2gTUnuDCGElgocZDLH8FpwMnRDhqqskUeGNahTFgNqJ")
 
+huobi = HuobiWrapper("","")
 
 def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
     """keep in mind  ask price is higher than 
@@ -53,24 +51,26 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
     coinA: 交易货币
     """
     bina_str = "{}{}".format(coinA, coinB)
-    polo_str = "{}_{}".format(coinB, coinA)
+    huobi_str = "{}{}".format(coinA, coinB).lower()
 
-    polo_price = polo.depth(polo_str)
+    huobi_price = huobi.depth(huobi_str)
     bina_price = binance.depth(bina_str)
 
+    import pdb; pdb.set_trace()
+
     # 买一价和卖一价, bid is higher than asks
-    p_ask, b_ask = top_price(polo_price['asks']), top_price(bina_price['asks'])
-    p_bid, b_bid = top_price(polo_price['bids']), top_price(bina_price['bids'])
+    p_ask, b_ask = top_price(huobi_price['asks']), top_price(bina_price['asks'])
+    p_bid, b_bid = top_price(huobi_price['bids']), top_price(bina_price['bids'])
 
     logging.info("binance price is {}, {}".format(b_ask, b_bid))
-    logging.info("poloniex price is {}, {}".format(p_ask, p_bid))
+    logging.info("huobi price is {}, {}".format(p_ask, p_bid))
 
     # 最小交易量
     # a 平台 bid 价格超过b 平台 ask 的价格时候才有套利机会
     if price_diff(ratio, b_bid, p_ask):
-        logging.info("poloniex ask price  {} is lower than binance bid price {}".format(p_ask, b_bid))
+        logging.info("huobi ask price  {} is lower than binance bid price {}".format(p_ask, b_bid))
         # b 网执行卖单， p 网执行卖单
-        b_sell_price,p_buy_price,amt = amount_and_price(format_ticker(polo_price['asks']),
+        b_sell_price,p_buy_price,amt = amount_and_price(format_ticker(huobi_price['asks']),
                                                         format_ticker(bina_price['bids']), ratio)
 
         b_eth_amt = float(binance.balance(coinA))
@@ -83,9 +83,9 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
             logging.info("not enogh usdt {} to trade".format(b_eth_amt))
 
     if price_diff(ratio, p_bid, b_ask):
-        logging.info("binance ask price  {} is lower than poloniex bid price {}".format(b_ask, p_bid))
+        logging.info("binance ask price  {} is lower than huobi bid price {}".format(b_ask, p_bid))
         p_sell_price,b_buy_price,amt = amount_and_price(format_ticker(bina_price['asks']),
-                                                        format_ticker(polo_price['bids']), ratio)
+                                                        format_ticker(huobi_price['bids']), ratio)
 
         b_usdt_amt = float(binance.balance(coinB))
         
@@ -108,12 +108,12 @@ def main():
 
 
     while True:
-        try:
-            check_price_for_arbi(coina, coinb)
-            time.sleep(0.5)
-        except Exception as e:
-            logging.warning(e)
-            continue
+        # try:
+        check_price_for_arbi(coina, coinb)
+        time.sleep(0.5)
+        # except Exception as e:
+            # logging.warning(e)
+            # continue
 
 if __name__ == '__main__':
     main()
