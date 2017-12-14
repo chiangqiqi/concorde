@@ -67,7 +67,7 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
     # a 平台 bid 价格超过b 平台 ask 的价格时候才有套利机会
     if price_diff(ratio, b_bid, p_ask):
         logging.info("huobi ask price  {} is lower than binance bid price {}".format(p_ask, b_bid))
-        # b 网执行卖单， p 网执行卖单
+        # b 网执行卖单， p 网执行买单
         b_sell_price,p_buy_price,amt = amount_and_price(format_ticker(huobi_price['asks']),
                                                         format_ticker(bina_price['bids']), ratio)
 
@@ -78,7 +78,7 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
         if amt> threshold:
             binance.trade(bina_str, b_sell_price, amt, "Sell")
         else:
-            logging.info("not enogh usdt {} to trade".format(b_eth_amt))
+            logging.info("not enogh {} {} to trade".format(coinA ,b_eth_amt))
 
     if price_diff(ratio, p_bid, b_ask):
         logging.info("binance ask price  {} is lower than huobi bid price {}".format(b_ask, p_bid))
