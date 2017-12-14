@@ -56,8 +56,6 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
     huobi_price = huobi.depth(huobi_str)
     bina_price = binance.depth(bina_str)
 
-    import pdb; pdb.set_trace()
-
     # 买一价和卖一价, bid is higher than asks
     p_ask, b_ask = top_price(huobi_price['asks']), top_price(bina_price['asks'])
     p_bid, b_bid = top_price(huobi_price['bids']), top_price(bina_price['bids'])
