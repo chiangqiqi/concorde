@@ -93,8 +93,6 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
 
         amt = round(amt * 0.999, 4)
 
-        import pdb; pdb.set_trace()
-        
         if amt> threshold:
             binance.trade(bina_str, b_buy_price, amt, "Buy")
         else:
@@ -109,14 +107,16 @@ def main():
 
     if coina == "ETH":
         thres = 0.001
+    elif coina == "BTC":
+        thres = 0.0001
 
     while True:
-        # try:
-        check_price_for_arbi(coina, coinb, threshold=thres)
-        time.sleep(0.5)
-        # except Exception as e:
-            # logging.warning(e)
-            # continue
+        try:
+            check_price_for_arbi(coina, coinb, threshold=thres)
+            time.sleep(0.5)
+        except Exception as e:
+            logging.warning(e)
+            continue
 
 if __name__ == '__main__':
     main()
