@@ -75,6 +75,7 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
         amt = min(amt, b_eth_amt)
         # limit precision
         amt = round(amt * 0.999, 4)
+
         if amt> threshold:
             binance.trade(bina_str, b_sell_price, amt, "Sell")
         else:
@@ -91,6 +92,8 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
         amt = min(amt, b_usdt_amt/b_buy_price)
 
         amt = round(amt * 0.999, 4)
+
+        import pdb; pdb.set_trace()
         
         if amt> threshold:
             binance.trade(bina_str, b_buy_price, amt, "Buy")
@@ -104,10 +107,12 @@ def main():
     coina = sys.argv[1]
     coinb = sys.argv[2]
 
+    if coina == "ETH":
+        thres = 0.001
 
     while True:
         # try:
-        check_price_for_arbi(coina, coinb)
+        check_price_for_arbi(coina, coinb, threshold=thres)
         time.sleep(0.5)
         # except Exception as e:
             # logging.warning(e)
