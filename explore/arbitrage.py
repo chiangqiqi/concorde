@@ -98,7 +98,7 @@ def check_price_for_arbi(coinA, coinB, threshold=0.001, ratio=0.004):
         if amt> threshold:
             binance.trade(bina_str, b_buy_price, amt, "Buy")
         else:
-            logging.info("not enogh {} {} to trade".format(coinB, b_eth_amt))
+            logging.info("not enogh {} {} to trade".format(coinB, b_usdt_amt))
 
 import time
 import sys
