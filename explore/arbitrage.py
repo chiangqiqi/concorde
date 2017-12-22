@@ -1,5 +1,6 @@
 import logging
 import pandas as pd
+import math
 
 from exchanges import BinanceWrapper,PoloWrapper
 
@@ -21,6 +22,10 @@ parsedepth = lambda x: float(x)
 from itertools import takewhile
 import functools
 
+def precision_floor(f, presicion=2):
+    base = math.pow(10, presicion)
+    return math.floor(f * base) / base
+    
 def amount_and_price(bask, abid, ratio):
     """return buy price and sell price for two exchange depth array, and the amount
     bid is smaller than 
@@ -77,7 +82,7 @@ def check_price_for_arbi(coinA, coinB, threshold=0.001, ratio=0.004):
         b_eth_amt = float(binance.balance(coinA))
         amt = min(amt, b_eth_amt)
         # limit precision
-        amt = round(amt * 0.999, 4)
+        amt = precision_floor(amt, 6)
         if amt> threshold:
             binance.trade(bina_str, b_sell_price, amt, "Sell")
         else:
@@ -93,7 +98,7 @@ def check_price_for_arbi(coinA, coinB, threshold=0.001, ratio=0.004):
         # cut by a little margin to avoid lot error
         amt = min(amt, b_usdt_amt/b_buy_price)
 
-        amt = round(amt * 0.999, 4)
+        amt = precision_floor(amt, 6)
         
         if amt> threshold:
             binance.trade(bina_str, b_buy_price, amt, "Buy")
