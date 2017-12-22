@@ -1,7 +1,7 @@
 import logging
 import pandas as pd
 
-from .exchanges import BinanceWrapper,PoloWrapper
+from exchanges import BinanceWrapper,PoloWrapper
 
 logging.basicConfig(filename='arbitrage.log',format='%(asctime)s %(message)s',level=logging.INFO)
 
@@ -47,7 +47,7 @@ binance = BinanceWrapper("C9Qc9I3ge6Nz9oUH3cATNXx1rf0PtWwFyKHtklvXwn7TwDWlwCWAZk
                          "MUwvS9Brw30ciofOhQTuU2gTUnuDCGElgocZDLH8FpwMnRDhqqskUeGNahTFgNqJ")
 
 
-def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
+def check_price_for_arbi(coinA, coinB, threshold=0.001, ratio=0.004):
     """keep in mind  ask price is higher than 
     coinB: 基准货币，比如 btc, usdt
     coinA: 交易货币
@@ -80,7 +80,7 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
         if amt> threshold:
             binance.trade(bina_str, b_sell_price, amt, "Sell")
         else:
-            logging.info("not enogh usdt {} to trade".format(b_eth_amt))
+            logging.info("not enogh {} {} to trade".format(coinA ,b_eth_amt))
 
     if price_diff(ratio, p_bid, b_ask):
         logging.info("binance ask price  {} is lower than poloniex bid price {}".format(b_ask, p_bid))
@@ -97,7 +97,7 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0015):
         if amt> threshold:
             binance.trade(bina_str, b_buy_price, amt, "Buy")
         else:
-            logging.info("not enogh usdt {} to trade".format(b_usdt_amt))
+            logging.info("not enogh {} {} to trade".format(coinB, b_eth_amt))
 
 import time
 import sys
