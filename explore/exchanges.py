@@ -94,5 +94,5 @@ class HuobiWrapper:
 
     def depth(self, currency_pair):
         addr = self.api + "market/depth"
-        resp = requests.get(addr, {"symbol": currency_pair, "type": "step1"})
+        resp = requests.get(addr, {"symbol": currency_pair, "type": "step1"}, timeout=1.0)
         return resp.json()['tick']
