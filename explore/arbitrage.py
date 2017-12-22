@@ -4,6 +4,7 @@ import pandas as pd
 from exchanges import BinanceWrapper,PoloWrapper
 
 logging.basicConfig(filename='arbitrage.log',format='%(asctime)s %(message)s',level=logging.INFO)
+logging.getLogger().addHandler(logging.StreamHandler())
 
 """
 polo.returnTicker
