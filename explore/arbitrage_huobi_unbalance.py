@@ -65,14 +65,27 @@ def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0025):
     bina_str = "{}{}".format(coinA, coinB)
     huobi_str = "{}{}".format(coinA, coinB).lower()
 
-    huobi_price = huobi.depth(huobi_str)
-
-    # deform huobi price
-    huobi_div_bina = 0.994
-    huobi_price['asks'] = price_deform(huobi_price['asks'], huobi_div_bina)
-    huobi_price['bids'] = price_deform(huobi_price['bids'], huobi_div_bina)
-
+    huobi_price_before = huobi.depth(huobi_str)
     bina_price = binance.depth(bina_str)
+
+    p_ask, b_ask = top_price(huobi_price_before['asks']), top_price(bina_price['asks'])
+    p_bid, b_bid = top_price(huobi_price_before['bids']), top_price(bina_price['bids'])
+   
+    q.append((p_ask, b_ask, p_bid, b_bid))
+    arr = np.array(q)
+    avg_price(arr)
+
+    huobi_div_bina = avg_price(arr)
+    logging.info("ratio is {}".format(huobi_div_bina))
+    if len(q) < 120:
+        logging.info("ticker length is {}".format(len(q)))
+        return
+    
+    # deform huobi price
+    huobi_price = {}
+    huobi_price['asks'] = price_deform(huobi_price_before['asks'], huobi_div_bina)
+    huobi_price['bids'] = price_deform(huobi_price_before['bids'], huobi_div_bina)
+
 
     # 买一价和卖一价, bid is higher than asks
     p_ask, b_ask = top_price(huobi_price['asks']), top_price(bina_price['asks'])
@@ -122,7 +135,7 @@ import time
 import sys
 import numpy as np
 
-q = deque(maxlen=1000)
+q = deque(maxlen=3600)
 
 def avg_price(arr):
     """average price of usdt between two platform
