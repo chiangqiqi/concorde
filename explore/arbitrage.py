@@ -193,11 +193,11 @@ def main():
 
     while True:
         time.sleep(1)
-        # try:
-        check_price_for_arbi(coina, coinb, threshold=thres)
-        # except Exception as e:
-            # logging.warning(e)
-            # continue
+        try:
+            check_price_for_arbi(coina, coinb, threshold=thres)
+        except Exception as e:
+            logging.warning(e)
+            continue
 
 if __name__ == '__main__':
     main()
