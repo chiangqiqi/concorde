@@ -1,5 +1,6 @@
 from binance.client import Client as Binance
 from poloniex import Poloniex
+from huobi.client import Huobi
 
 import logging
 
@@ -12,7 +13,7 @@ class PoloWrapper:
         :param: skey: secret key
         """
         self.client = Poloniex(pkey, skey)
-        
+
     def trade(self, currency_pair, price, amount, trade_side):
         """trade_type: buy or sell
 
@@ -43,7 +44,7 @@ class BinanceWrapper:
         :param: skey: secret key
         """
         self.client = Binance(pkey, skey)
-        
+
     def trade(self, currency_pair, price, amount, trade_side):
         """trade_side: buy or sell
 
@@ -53,7 +54,7 @@ class BinanceWrapper:
             ttype = SIDE_BUY
         elif trade_side == "Sell":
             ttype = SIDE_SELL
-        
+
         order = self.client.create_order(
             symbol=currency_pair,
             side=ttype,
@@ -81,18 +82,27 @@ class BinanceWrapper:
         return self.client.get_order_book(symbol=currency_pair)
 
 
-import requests
 class HuobiWrapper:
     def __init__(self,pkey, skkey):
         "docstring"
-        self.api = "https://api.huobi.pro/"
-        pass
+        self.client = Huobi(pkey, skey)
 
+    def trade(self, currency_pair, price, amount, trade_side):
+        """trade_side: buy or sell
 
-    def trade():
-        pass
+        polo client api is buy(self, currencyPair, rate, amount, orderType=False)
+        """
+        if trade_side == "Buy":
+            ttype = 'buy-limit'
+        elif trade_side == "Sell":
+            ttype = 'sell-limit'
+
+        order = self.client.send_order(amount, "", currency_pair,ttype,price)
+        logging.info("place a {} order in binance {} {} {}".format(trade_side, currency_pair, price, amount))
+
+    def balance(self, currency_pair):
+        return dict([(rec['currency'],float(rec['balance']))
+                     for rec in  balance['data']['list'] if rec['type'] == 'trade'])
 
     def depth(self, currency_pair):
-        addr = self.api + "market/depth"
-        resp = requests.get(addr, {"symbol": currency_pair, "type": "step1"}, timeout=1.0)
-        return resp.json()['tick']
+        return self.client.get_depth(currency_pair)['tick']
