@@ -4,6 +4,10 @@ from huobi.client import Huobi
 
 import logging
 
+def precision_floor(f, presicion=2):
+    base = math.pow(10, presicion)
+    return math.floor(f * base) / base
+
 class PoloWrapper:
     """a simple polo wrapper
     """
@@ -83,7 +87,7 @@ class BinanceWrapper:
 
 
 class HuobiWrapper:
-    def __init__(self,pkey, skkey):
+    def __init__(self,pkey, skey):
         "docstring"
         self.client = Huobi(pkey, skey)
 
@@ -97,12 +101,16 @@ class HuobiWrapper:
         elif trade_side == "Sell":
             ttype = 'sell-limit'
 
+        price = round(price, 2)
         order = self.client.send_order(amount, "", currency_pair,ttype,price)
+        logging.info("placing order in huobi {}".format(order))
         logging.info("place a {} order in binance {} {} {}".format(trade_side, currency_pair, price, amount))
 
-    def balance(self, currency_pair):
-        return dict([(rec['currency'],float(rec['balance']))
-                     for rec in  balance['data']['list'] if rec['type'] == 'trade'])
+    def balance(self, coin):
+        resp = self.client.get_balance()
+        data = dict([(rec['currency'],float(rec['balance']))
+                     for rec in  resp['data']['list'] if rec['type'] == 'trade'])
+        return data[coin.lower()]
 
     def depth(self, currency_pair):
         return self.client.get_depth(currency_pair)['tick']
