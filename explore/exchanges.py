@@ -1,6 +1,7 @@
 from binance.client import Client as Binance
 from poloniex import Poloniex
 from huobi.client import Huobi
+import requests
 
 import logging
 
@@ -114,3 +115,18 @@ class HuobiWrapper:
 
     def depth(self, currency_pair):
         return self.client.get_depth(currency_pair)['tick']
+
+class OkexWrapper:
+    api_url = "https://www.okex.com/api/"
+    def __init__(self, pkey, skey):
+        pass
+
+    def trade(self):
+        pass
+
+    def depth(self, currency_pair):
+        depth_api = self.api_url + "v1/depth.do"
+        depth = requests.get(depth_api, {"symbol": currency_pair}, timeout=1).json()
+        # okex tiker is not the same order as others
+        depth['asks'].reverse()
+        return depth

@@ -3,9 +3,10 @@ import pandas as pd
 from collections import deque
 import math
 
-from exchanges import BinanceWrapper,PoloWrapper,HuobiWrapper
+from exchanges import BinanceWrapper,PoloWrapper,HuobiWrapper,OkexWrapper
 
 logging.basicConfig(filename='arbitrage_huobi.log',format='%(asctime)s %(message)s',level=logging.INFO)
+logging.getLogger().addHandler(logging.StreamHandler())
 
 """
 polo.returnTicker
@@ -15,21 +16,20 @@ polo.returnTicker
 top_price = lambda l: float(l[0][0])
 price_diff = lambda r,x,y: (x-y)/x> r
 
-
 parsedepth = lambda x: float(x)
 
-    
+
 from itertools import takewhile
 import functools
 
 def amount_and_price(bask, abid, ratio):
     """return buy price and sell price for two exchange depth array, and the amount
-    bid is smaller than 
+    bid is smaller than
 
-    corr: bprice and a price may got a 
+    corr: bprice and a price may got a
     """
     topbid,topask = top_price(abid),top_price(bask)
-    
+
     condi = functools.partial(price_diff, ratio)
     ask_chi = list(takewhile(lambda x: condi(topbid, x[0]), bask))
     bid_chi = list(takewhile(lambda x: condi(x[0], topask), abid))
@@ -44,8 +44,6 @@ def amount_and_price(bask, abid, ratio):
 
 format_ticker = lambda l: [(float(x[0]), float(x[1])) for x in l]
 
-binance = BinanceWrapper("C9Qc9I3ge6Nz9oUH3cATNXx1rf0PtWwFyKHtklvXwn7TwDWlwCWAZkvJYlHUV7aO",
-                         "MUwvS9Brw30ciofOhQTuU2gTUnuDCGElgocZDLH8FpwMnRDhqqskUeGNahTFgNqJ")
 
 import configparser
 
@@ -53,7 +51,12 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 huobi_conf = config['huobi']
-huobi = HuobiWrapper(huobi_conf['pkey'],huobi_conf['skey'])
+# huobi = HuobiWrapper(huobi_conf['pkey'],huobi_conf['skey'])
+
+binance_conf = config['binance']
+binance = BinanceWrapper(binance_conf['pkey'], binance_conf['skey'])
+
+okex = OkexWrapper("", "")
 
 def price_deform(price,r):
     return [(float(rec[0])*r, float(rec[1])) for rec in price]
@@ -63,85 +66,96 @@ def precision_floor(f, presicion=2):
     return math.floor(f * base) / base
 
 
-def check_price_for_arbi(coinA, coinB, threshold=0.0001, ratio=0.0025):
-    """keep in mind  ask price is higher than 
-    coinB: 基准货币，比如 btc, usdt
-    coinA: 交易货币
-    """
-    bina_str = "{}{}".format(coinA, coinB)
-    huobi_str = "{}{}".format(coinA, coinB).lower()
+class Arbitrager:
+    def __init__(self, exchangeA, exchangeB, ratio=0.0025):
+        self.exchangeA = exchangeA
+        self.exchangeB = exchangeB
+        # self._coinA = coinA
+        # self._coinB = coinB
+        self.threshold=0.0001
+        self.ratio = ratio
+        self.use_avg=False
 
-    huobi_price = huobi.depth(huobi_str)
-    bina_price_before = binance.depth(bina_str)
+    def run(self, coinA, coinB):
+        """keep in mind  ask price is higher than
+        coinB: 基准货币，比如 btc, usdt
+        coinA: 交易货币
+        """
+        bina_str = "{}{}".format(coinA, coinB)
+        # huobi_str = "{}{}".format(coinA, coinB).lower()
+        huobi_str = "{}_{}".format(coinA, coinB).lower()
 
-    p_ask, b_ask = top_price(huobi_price['asks']), top_price(bina_price_before['asks'])
-    p_bid, b_bid = top_price(huobi_price['bids']), top_price(bina_price_before['bids'])
-   
-    q.append((p_ask, b_ask, p_bid, b_bid))
-    arr = np.array(q)
-    avg_price(arr)
+        huobi_price = self.exchangeB.depth(huobi_str)
+        bina_price = self.exchangeA.depth(bina_str)
 
-    huobi_div_bina = avg_price(arr)
-    logging.info("ratio is {}".format(huobi_div_bina))
+        p_ask, b_ask = top_price(huobi_price['asks']), top_price(bina_price['asks'])
+        p_bid, b_bid = top_price(huobi_price['bids']), top_price(bina_price['bids'])
 
-   
-    # deform the other platform price
-    bina_price = {}
-    bina_price['asks'] = price_deform(bina_price_before['asks'], 1/huobi_div_bina)
-    bina_price['bids'] = price_deform(bina_price_before['bids'], 1/huobi_div_bina)
+        if self.use_avg:
+            q.append((p_ask, b_ask, p_bid, b_bid))
+            arr = np.array(q)
+            avg_price(arr)
 
-    # 买一价和卖一价, bid is higher than asks
-    p_ask, b_ask = top_price(huobi_price['asks']), top_price(bina_price['asks'])
-    p_bid, b_bid = top_price(huobi_price['bids']), top_price(bina_price['bids'])
+            huobi_div_bina = avg_price(arr)
+            logging.info("ratio is {}".format(huobi_div_bina))
 
-    logging.info("binance price is {}, {}".format(b_ask, b_bid))
-    logging.info("huobi price is {}, {}".format(p_ask, p_bid))
+            # deform the other platform price
+            bina_price = {}
+            bina_price['asks'] = price_deform(bina_price['asks'], 1/huobi_div_bina)
+            bina_price['bids'] = price_deform(bina_price['bids'], 1/huobi_div_bina)
 
+            # 买一价和卖一价, bid is higher than asks
+            p_ask, b_ask = top_price(huobi_price['asks']), top_price(bina_price['asks'])
+            p_bid, b_bid = top_price(huobi_price['bids']), top_price(bina_price['bids'])
 
-    if len(q) < 100:
-        logging.info("ticker length is {}".format(len(q)))
-        return
- 
-    # 最小交易量
-    # a 平台 bid 价格超过b 平台 ask 的价格时候才有套利机会
-    if price_diff(ratio, b_bid, p_ask):
-        logging.info("huobi ask price  {} is lower than binance bid price {}".format(p_ask, b_bid))
-        # b 网执行卖单， p 网执行买单
-        b_sell_price,p_buy_price,amt = amount_and_price(format_ticker(huobi_price['asks']),
-                                                        format_ticker(bina_price['bids']), ratio)
+            if len(q) < 100:
+                logging.info("ticker length is {}".format(len(q)))
+                return
 
-        # b_eth_amt = float(binance.balance(coinA))
-        p_usdt_amt = float(huobi.balance(coinB))
+        logging.info("binance price is {}, {}".format(b_ask, b_bid))
+        logging.info("huobi price is {}, {}".format(p_ask, p_bid))
 
-        amt = min(amt, p_usdt_amt/p_buy_price)
-        # limit precision
-        amt = precision_floor(amt, 4)
+        # 最小交易量
+        # a 平台 bid 价格超过b 平台 ask 的价格时候才有套利机会
+        if price_diff(self.ratio, b_bid, p_ask):
+            logging.info("huobi ask price  {} is lower than binance bid price {}".format(p_ask, b_bid))
+            # b 网执行卖单， p 网执行买单
+            b_sell_price,p_buy_price,amt = amount_and_price(format_ticker(huobi_price['asks']),
+                                                            format_ticker(bina_price['bids']), self.ratio)
 
-        if amt> threshold:
-            # binance.trade(bina_str, b_sell_price, amt, "Sell")
-            huobi.trade(huobi_str, p_buy_price, amt, "Buy")
-        else:
-            logging.info("not enogh usdt {} to trade".format(p_usdt_amt))
+            b_eth_amt = float(self.exchangeA.balance(coinA))
+            # p_usdt_amt = float(self.exchangeA.balance(coinB))
 
-    if price_diff(ratio, p_bid, b_ask):
-        logging.info("binance ask price  {} is lower than huobi bid price {}".format(b_ask, p_bid))
-        p_sell_price,b_buy_price,amt = amount_and_price(format_ticker(bina_price['asks']),
-                                                        format_ticker(huobi_price['bids']), ratio)
+            amt = b_eth_amt
+            # amt = min(amt, p_usdt_amt/p_buy_price)
+            # limit precision
+            amt = precision_floor(amt, 4)
 
-        # b_usdt_amt = float(binance.balance(coinB))
-        p_eth_amt = float(huobi.balance(coinA))
-        
-        # cut by a little margin to avoid lot error
-        # amt = min(amt, b_usdt_amt/b_buy_price)
+            if amt> self.threshold:
+                self.exchangeA.trade(bina_str, b_sell_price, amt, "Sell")
+                # self.exchangeA.trade(huobi_str, p_buy_price, amt, "Buy")
+            else:
+                logging.info("not enogh {} {} to trade".format(coinA ,b_eth_amt))
+                # logging.info("not enogh usdt {} to trade".format(p_usdt_amt))
 
-        amt = precision_floor(p_eth_amt, 4)
+        if price_diff(self.ratio, p_bid, b_ask):
+            logging.info("binance ask price  {} is lower than huobi bid price {}".format(b_ask, p_bid))
+            p_sell_price,b_buy_price,amt = amount_and_price(format_ticker(bina_price['asks']),
+                                                            format_ticker(huobi_price['bids']), self.ratio)
 
-        if amt> threshold:
-            # print("buy")
-            # binance.trade(bina_str, b_buy_price, amt, "Buy")
-            huobi.trade(huobi_str, p_sell_price, amt, "Sell")
-        else:
-            logging.info("not enogh {} {} to trade".format(coinA ,p_eth_amt))
+            b_usdt_amt = float(self.exchangeA.balance(coinB))
+            # p_eth_amt = float(self.exchangeA.balance(coinA))
+
+            # cut by a little margin to avoid lot error
+            amt = min(amt, b_usdt_amt/b_buy_price)
+            amt = precision_floor(amt, 4)
+            if amt> self.threshold:
+                # print("buy")
+                self.exchangeA.trade(bina_str, b_buy_price, amt, "Buy")
+                # self.exchangeA.trade(huobi_str, p_sell_price, amt, "Sell")
+            else:
+                logging.info("not enogh usdt {} to trade".format(b_usdt_amt))
+                # logging.info("not enogh {} {} to trade".format(coinA ,p_eth_amt))
 
 import time
 import sys
@@ -162,7 +176,7 @@ def avg_price(arr):
 
 
 def check_price_stats(coinA, coinB, threshold=0.0001, ratio=0.0015):
-    """keep in mind  ask price is higher than 
+    """keep in mind  ask price is higher than
     coinB: 基准货币，比如 btc, usdt
     coinA: 交易货币
     """
@@ -191,10 +205,11 @@ def main():
     elif coina == "BTC":
         thres = 0.0001
 
+    arbitrager = Arbitrager(binance, okex, ratio=0.002)
     while True:
         time.sleep(1)
         try:
-            check_price_for_arbi(coina, coinb, threshold=thres)
+            arbitrager.run(coina, coinb)
         except Exception as e:
             logging.warning(e)
             continue
