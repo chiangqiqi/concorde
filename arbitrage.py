@@ -30,6 +30,11 @@ def main():
     coinb = sys.argv[2]
 
     arbitrager = Arbitrager(binance, okex, ratio=0.002, informer=informer)
+    configkey = (coina+coinb).lower()
+
+    if configkey in config:
+        arbitrager.set_config(config[configkey])
+    
     while True:
         time.sleep(1)
         try:

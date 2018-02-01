@@ -62,11 +62,11 @@ class Arbitrager:
         self.use_avg=False
         self.amt_precision = precision
 
-    def config(self, config):
+    def set_config(self, config):
         """
         """
-        self.threshold = config['threshold']
-        self.amt_precision = config['precision']
+        self.threshold = float(config['threshold'])
+        self.amt_precision = int(config['precision'])
         
     def run(self, coinA, coinB):
         """keep in mind  ask price is higher than
