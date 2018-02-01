@@ -8,7 +8,7 @@ from binance.client import Client as Binance
 import pandas as pd
 
 client = Binance("C9Qc9I3ge6Nz9oUH3cATNXx1rf0PtWwFyKHtklvXwn7TwDWlwCWAZkvJYlHUV7aO",
-        "MUwvS9Brw30ciofOhQTuU2gTUnuDCGElgocZDLH8FpwMnRDhqqskUeGNahTFgNqJ")
+                 "MUwvS9Brw30ciofOhQTuU2gTUnuDCGElgocZDLH8FpwMnRDhqqskUeGNahTFgNqJ")
 
 
 import sys
@@ -41,6 +41,7 @@ conn = sqlite3.connect('trades.db')
 get_value = lambda rec: (rec['id'], rec['orderId'], rec['commission'], rec['commissionAsset'], rec['isBuyer'], rec['isMaker'],
                          float(rec['price']), float(rec['qty']),
                          datetime.fromtimestamp(rec['time']/1000))
+
 def create_table():
     """
      {'commission': '0.08285806',
@@ -56,7 +57,7 @@ def create_table():
     """
 
     c.execute('''CREATE TABLE btcusdt
-             (id long,orderId long, commission real, commissionAsset text, isBuyer boolean, isMaker boolean, price real, qty real, time date)''')
+    (id long,orderId long, commission real, commissionAsset text, isBuyer boolean, isMaker boolean, price real, qty real, time date)''')
 
 def save_trades_tosql(s):
     res = client.get_my_trades(symbol=s)

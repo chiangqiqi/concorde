@@ -45,10 +45,10 @@ class TgMiddleMan:
                    'text': msg , 'origin': 'Captain'}
 
         async with aiohttp.ClientSession() as session:
-                async with session.post(boturl, json=req_msg) as resp:
-                    resp_text = await resp.text()
-                    try:
-                        ret = json.loads(resp_text)
-                        return ret
-                    except Exception as e:
-                        return resp_text
+            async with session.post(boturl, json=req_msg) as resp:
+                resp_text = await resp.text()
+                try:
+                    ret = json.loads(resp_text)
+                    return ret
+                except Exception as e:
+                    return resp_text
