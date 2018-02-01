@@ -61,6 +61,7 @@ class Arbitrager:
         self.ratio = ratio
         self.use_avg=False
         self.amt_precision = precision
+        self.informer = informer
 
     def set_config(self, config):
         """
@@ -125,8 +126,9 @@ class Arbitrager:
 
             if amt> self.threshold:
                 self.exchangeA.trade(bina_str, b_sell_price, amt, "Sell")
-                if informer:
-                    msg = "place a {} sell order with amount {} at price".format(bina_str, amt, b_sell_price)
+                if self.informer:
+                    msg = "place a {} sell order with amount {} at price {}.".format(bina_str, amt, b_sell_price)
+                    self.informer.send_msg(msg)
                 # self.exchangeA.trade(huobi_str, p_buy_price, amt, "Buy")
             else:
                 logging.info("not enogh {} {} to trade".format(coinA ,b_eth_amt))
@@ -146,9 +148,9 @@ class Arbitrager:
             if amt> self.threshold:
                 # print("buy")
                 self.exchangeA.trade(bina_str, b_buy_price, amt, "Buy")
-                if informer:
-                    msg = "place a {} buy order with amount {} at price".format(bina_str, amt, b_sell_price)
-
+                if self.informer:
+                    msg = "place a {} buy order with amount {} at price {}.".format(bina_str, amt, b_buy_price)
+                    self.informer.send_msg(msg)
                 # self.exchangeA.trade(huobi_str, p_sell_price, amt, "Sell")
             else:
                 logging.info("not enogh usdt {} to trade".format(b_usdt_amt))
