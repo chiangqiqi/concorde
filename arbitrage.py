@@ -1,39 +1,46 @@
-#coding=utf-8
-#加载必要的库
-# import numpy as np
-# import pandas as pd
-from __future__ import print_function
-import asyncio
+#!/usr/bin/env python
 import logging
-import logging.config
-import yaml
-import os
+import configparser
 import sys
+import time
+import requests
 
-from finance.currency import CurrencyPair
-from machine import ArbitrageMachine
+from concorde.exchanges import BinanceWrapper,PoloWrapper,HuobiWrapper,OkexWrapper
+from concorde.arbitrage import Arbitrager
+from sms.telegram import TgMiddleMan
 
-logging.config.fileConfig("./logging.config")
+logging.basicConfig(filename='arbitrage.log',format='%(asctime)s %(message)s',level=logging.INFO)
+logging.getLogger().addHandler(logging.StreamHandler())
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+huobi_conf = config['huobi']
+# huobi = HuobiWrapper(huobi_conf['pkey'],huobi_conf['skey'])
+
+binance_conf = config['binance']
+binance = BinanceWrapper(binance_conf['pkey'], binance_conf['skey'])
+
+okex = OkexWrapper("", "")
+
+informer = TgMiddleMan(config['middleman']['addr'])
 
 def main():
-    config = yaml.load(open(os.path.join("", 'config.yaml'), encoding='utf8'))
-    machine = ArbitrageMachine(config)
-    loop = asyncio.get_event_loop()
+    coina = sys.argv[1]
+    coinb = sys.argv[2]
 
-    d = {'XRP': CurrencyPair.XRP_CNY, 'BTS': CurrencyPair.BTS_CNY,
-         'ETC': CurrencyPair.ETC_CNY, 'ETH': CurrencyPair.ETH_CNY,
-         'ANS': CurrencyPair.ANS_CNY, 'ZEC': CurrencyPair.ZEC_CNY,
-         'NXT': CurrencyPair.NXT_CNY,
-         'BTC': CurrencyPair.BTC_CNY,
-         'QTUM': CurrencyPair.QTUM_CNY,
-         'LTC': CurrencyPair.LTC_CNY,
-         'BCC': CurrencyPair.BCC_CNY,
-         'EOS': CurrencyPair.EOS_CNY,
-    }
-
-    coin = sys.argv[1]
-    # cp = getCurrencyPairByName(d[sys.argv[1]])
-    loop.run_until_complete(machine.run(d[coin]))
+    arbitrager = Arbitrager(binance, okex, ratio=0.002, informer=informer)
+    while True:
+        time.sleep(1)
+        try:
+            arbitrager.run(coina, coinb)
+        except requests.exceptions.ReadTimeout as e:
+            logging.warning(e)
+        except Exception as e:
+            logging.warning(e)
+            msg = "[ERROR]:" + str(e)
+            informer.send_msg(msg)
+            continue
 
 if __name__ == '__main__':
     main()

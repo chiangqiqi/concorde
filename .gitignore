@@ -1,5 +1,5 @@
 *.pyc
 log.log*
-water.log
+*.log
 *.yaml
 .DS_Store

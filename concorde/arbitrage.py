@@ -3,11 +3,6 @@ import pandas as pd
 from collections import deque
 import math
 
-from exchanges import BinanceWrapper,PoloWrapper,HuobiWrapper,OkexWrapper
-
-logging.basicConfig(filename='arbitrage_huobi.log',format='%(asctime)s %(message)s',level=logging.INFO)
-logging.getLogger().addHandler(logging.StreamHandler())
-
 """
 polo.returnTicker
 """
@@ -45,19 +40,6 @@ def amount_and_price(bask, abid, ratio):
 format_ticker = lambda l: [(float(x[0]), float(x[1])) for x in l]
 
 
-import configparser
-
-config = configparser.ConfigParser()
-config.read('config.ini')
-
-huobi_conf = config['huobi']
-# huobi = HuobiWrapper(huobi_conf['pkey'],huobi_conf['skey'])
-
-binance_conf = config['binance']
-binance = BinanceWrapper(binance_conf['pkey'], binance_conf['skey'])
-
-okex = OkexWrapper("", "")
-
 def price_deform(price,r):
     return [(float(rec[0])*r, float(rec[1])) for rec in price]
 
@@ -67,7 +49,10 @@ def precision_floor(f, presicion=2):
 
 
 class Arbitrager:
-    def __init__(self, exchangeA, exchangeB, ratio=0.0025):
+    def __init__(self, exchangeA, exchangeB, ratio=0.0025, precision=3, informer=None):
+        """
+        precision: Binance sometimes got a LOT error if the amount is with a presicion higher
+        """ 
         self.exchangeA = exchangeA
         self.exchangeB = exchangeB
         # self._coinA = coinA
@@ -75,7 +60,14 @@ class Arbitrager:
         self.threshold=0.0001
         self.ratio = ratio
         self.use_avg=False
+        self.amt_precision = precision
 
+    def config(self, config):
+        """
+        """
+        self.threshold = config['threshold']
+        self.amt_precision = config['precision']
+        
     def run(self, coinA, coinB):
         """keep in mind  ask price is higher than
         coinB: 基准货币，比如 btc, usdt
@@ -129,10 +121,12 @@ class Arbitrager:
             amt = b_eth_amt
             # amt = min(amt, p_usdt_amt/p_buy_price)
             # limit precision
-            amt = precision_floor(amt, 4)
+            amt = precision_floor(amt, self.amt_precision)
 
             if amt> self.threshold:
                 self.exchangeA.trade(bina_str, b_sell_price, amt, "Sell")
+                if informer:
+                    msg = "place a {} sell order with amount {} at price".format(bina_str, amt, b_sell_price)
                 # self.exchangeA.trade(huobi_str, p_buy_price, amt, "Buy")
             else:
                 logging.info("not enogh {} {} to trade".format(coinA ,b_eth_amt))
@@ -148,10 +142,13 @@ class Arbitrager:
 
             # cut by a little margin to avoid lot error
             amt = min(amt, b_usdt_amt/b_buy_price)
-            amt = precision_floor(amt, 4)
+            amt = precision_floor(amt, self.amt_precision)
             if amt> self.threshold:
                 # print("buy")
                 self.exchangeA.trade(bina_str, b_buy_price, amt, "Buy")
+                if informer:
+                    msg = "place a {} buy order with amount {} at price".format(bina_str, amt, b_sell_price)
+
                 # self.exchangeA.trade(huobi_str, p_sell_price, amt, "Sell")
             else:
                 logging.info("not enogh usdt {} to trade".format(b_usdt_amt))
@@ -167,52 +164,6 @@ def avg_price(arr):
     """average price of usdt between two platform
     """
     avg =  np.mean(arr, axis=0)
-
     ask_ratio, bid_ratio  = avg[1]/avg[0], avg[3]/avg[2]
-
     print("avg ratio between two platform is {}, {}".format(ask_ratio, bid_ratio))
-
     return (ask_ratio+ bid_ratio)/2
-
-
-def check_price_stats(coinA, coinB, threshold=0.0001, ratio=0.0015):
-    """keep in mind  ask price is higher than
-    coinB: 基准货币，比如 btc, usdt
-    coinA: 交易货币
-    """
-    bina_str = "{}{}".format(coinA, coinB)
-    huobi_str = "{}{}".format(coinA, coinB).lower()
-
-    huobi_price = huobi.depth(huobi_str)
-    bina_price = binance.depth(bina_str)
-
-    # 买一价和卖一价, bid is higher than asks
-    p_ask, b_ask = top_price(huobi_price['asks']), top_price(bina_price['asks'])
-    p_bid, b_bid = top_price(huobi_price['bids']), top_price(bina_price['bids'])
-
-    q.append((p_ask, b_ask, p_bid, b_bid))
-
-    arr = np.array(q)
-
-    avg_price(arr)
-
-def main():
-    coina = sys.argv[1]
-    coinb = sys.argv[2]
-
-    if coina == "ETH":
-        thres = 0.001
-    elif coina == "BTC":
-        thres = 0.0001
-
-    arbitrager = Arbitrager(binance, okex, ratio=0.002)
-    while True:
-        time.sleep(1)
-        try:
-            arbitrager.run(coina, coinb)
-        except Exception as e:
-            logging.warning(e)
-            continue
-
-if __name__ == '__main__':
-    main()
