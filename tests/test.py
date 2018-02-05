@@ -1,4 +1,4 @@
-from arbitrage import amount_and_price
+# from arbitrage import amount_and_price
 from arbitrage import polo,binance
 
 ask = [[100 , 0.1], [101, 0.2], [102, 0.2]]
@@ -18,7 +18,11 @@ def test_balance():
     # info = binance.client.get_exchange_info()
     import pdb; pdb.set_trace()
     # binance.trade("ETHUSDT", 500, 0.1, "Sell")
-    
+   
+def test_float_precision():
+    import pdb; pdb.set_trace()
     
 # test_amt_price()
-test_balance()
+# test_balance()
+
+test_float_precision()

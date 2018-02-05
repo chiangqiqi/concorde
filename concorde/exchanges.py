@@ -60,6 +60,9 @@ class BinanceWrapper:
         elif trade_side == "Sell":
             ttype = SIDE_SELL
 
+        if type(price) == float:
+            price = '%.8f' % price
+
         order = self.client.create_order(
             symbol=currency_pair,
             side=ttype,
