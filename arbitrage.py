@@ -10,10 +10,6 @@ from concorde.exchanges import BinanceWrapper,PoloWrapper,HuobiWrapper,OkexWrapp
 from concorde.arbitrage import Arbitrager
 from sms.telegram import TgMiddleMan
 
-
-logging.basicConfig(filename='arbitrage.log',format='%(asctime)s %(message)s',level=logging.INFO)
-logging.getLogger().addHandler(logging.StreamHandler())
-
 config = configparser.ConfigParser()
 config.read('config.ini')
 
@@ -39,6 +35,11 @@ def main():
     parser.add_argument("--max-amount", help="weather we got a limitation on the amount (coin b most of the ime)", type=float)
 
     args = parser.parse_args()
+
+    market = (args.coina + args.coinb).lower()
+    logging.basicConfig(filename='arbitrage_{}.log'.format(market),
+                        format='%(asctime)s %(message)s',level=logging.INFO)
+    logging.getLogger().addHandler(logging.StreamHandler())
 
     arbitrager = Arbitrager(
         binance, okex,
