@@ -7,6 +7,7 @@ import time
 import hashlib
 import json as complex_json
 import requests
+import logging
 
 class RequestClient(object):
     __headers = {
@@ -55,19 +56,26 @@ class Client:
         resp = self.auth.request('GET', 'https://api.coinex.com/v1/balance/')
         return resp.json()
 
-    def trade(maket, price, amt, ttype):
-        request_client = RequestClient()
-
+    def trade(self, market, price, amt, ttype):
         data = {
             "amount": amt,
             "price": price,
             "type": ttype,
             "market": market
         }
-
-        resp = request_client.request(
+        
+        resp = self.auth.request(
             'POST',
             'https://api.coinex.com/v1/order/limit',
             json=data,
+        )
+        logging.info('place {} order in market {} at price {} with amt {}'.format(ttype, market, price, amt))
+        return resp.json()
+
+    def depth(self, market):
+        resp = self.auth.request(
+            'GET',
+            'https://api.coinex.com/v1/market/depth',
+            params={'market': market, 'merge': 0}
         )
         return resp.json()
