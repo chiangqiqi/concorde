@@ -53,13 +53,13 @@ class RequestClient(object):
             return requests.request(method, url, json=json, headers=self.headers)
 
 # from datetime import datetime
-import time       
+import time
 
 class Client:
     def __init__(self, pkey, skey):
         self.auth = RequestClient(pkey, skey)
         self._pkey = pkey
-        
+
     def get_account(self):
         resp = self.auth.request('GET', 'https://api.coinex.com/v1/balance/')
         return resp.json()
@@ -73,7 +73,7 @@ class Client:
             "type": ttype,
             "market": market
         }
-        
+
         resp = self.auth.request(
             'POST',
             'https://api.coinex.com/v1/order/limit',
@@ -101,13 +101,32 @@ class Client:
         )
         return resp
 
+    def get_orders(self, market):
+        """
+        Get current orders
+        """
+        tonce = int(time.time() * 1000)
+        data = {
+            'market' : market,
+            'access_id': self._pkey,
+            'page': 1,
+            'limit': 100,
+            'tonce': tonce
+        }
+        resp = self.auth.request(
+            'GET',
+            'https://api.coinex.com/v1/order/pending',
+            params = data
+        )
+        return resp.json()
+
     def delete_order(self, order_id, market):
-        """Cancel an order 
-        """ 
+        """Cancel an order
+        """
         tonce = int(time.time() * 1000)
         data = {
             'access_id': self._pkey,
-            'id': order_id, 
+            'id': order_id,
             'market': market,
             'tonce': tonce
         }
@@ -116,9 +135,10 @@ class Client:
             'https://api.coinex.com/v1/order/pending',
             params=data
         )
+        print(resp.text)
         return resp.json()
-        
-    
+
+
     def depth(self, market):
         resp = self.auth.request(
             'GET',
@@ -128,5 +148,23 @@ class Client:
         return resp.json()
 
     def cancel_all_orders(self, market):
-        resp = self.get_orders(market)
-        return [self.delete_order(d['id'], 'LTCBTC') for d in resp.json()['data']['data']]
+        orders = self.get_orders(market)
+        return [self.delete_order(d['id'], 'LTCBTC') for d in orders['data']['data']]
+
+    def history_orders(self, market, page=1, limit=100):
+
+        tonce = int(time.time() * 1000)
+        data = {
+            'access_id': self._pkey,
+            'market': market,
+            'page': page,
+            'limit': limit,
+            'tonce': tonce
+        }
+
+        resp = self.auth.request(
+            'GET',
+            'https://api.coinex.com/v1/order/finished',
+            params=data
+        )
+        return resp.json()
