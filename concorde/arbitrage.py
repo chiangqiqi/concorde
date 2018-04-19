@@ -48,7 +48,8 @@ def precision_floor(f, presicion=2):
 
 class Arbitrager:
     def __init__(self, exchangeA, exchangeB,
-                 ratio=0.0025, precision=3, informer=None, use_avg=False, max_amount=None):
+                 ratio=0.0025, precision=3, informer=None, use_avg=False, 
+                 max_amount=None, max_amount_a=None):
         """
         precision: Binance sometimes got a LOT error if the amount is with a presicion higher
         """
@@ -148,10 +149,15 @@ class Arbitrager:
                                                             format_ticker(huobi_price['bids']), self.ratio)
 
             b_usdt_amt = float(self.exchangeA.balance(coinB))
+            b_eth_amt = float(self.exchangeA.balance(coinA))
             # p_eth_amt = float(self.exchangeA.balance(coinA))
 
             # cut by a little margin to avoid lot error
             amt = min(amt, b_usdt_amt/b_buy_price)
+            if self.max_amount_a is not None:
+                amt = min(amt, self.max_amount_a - b_eth_amount)
+
+
             amt = precision_floor(amt, self.amt_precision)
 
             if amt> self.threshold:

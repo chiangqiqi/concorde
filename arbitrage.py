@@ -33,6 +33,7 @@ def main():
     parser.add_argument('--use-avg', dest='ma', action='store_true')
     parser.set_defaults(ma=False)
     parser.add_argument("--max-amount", help="weather we got a limitation on the amount (coin b most of the ime)", type=float)
+    parser.add_argument("--max-amount-a", help="weather we got a limitation on the amount (coin b most of the ime)", type=float)
 
     args = parser.parse_args()
 
@@ -44,7 +45,8 @@ def main():
     arbitrager = Arbitrager(
         binance, okex,
         ratio=args.ratio, use_avg=args.ma,
-        max_amount = args.max_amount, informer=informer
+        max_amount = args.max_amount,max_amount_a=args.max_amount_a,
+        informer=informer
     )
     configkey = (args.coina + args.coinb).lower()
 
@@ -58,8 +60,7 @@ def main():
         except requests.exceptions.ReadTimeout as e:
             logging.warning(e)
         except Exception as e:
-            logging.warning(e)
-            msg = "[ERROR]:" + str(e)
+            msg = "[ERROR]: error occured" 
             informer.send_msg(msg)
             continue
 
