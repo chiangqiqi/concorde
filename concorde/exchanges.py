@@ -60,13 +60,17 @@ class BinanceWrapper:
         elif trade_side == "Sell":
             ttype = SIDE_SELL
 
+        if type(price) == float:
+            price = '%.8f' % price
+
         order = self.client.create_order(
             symbol=currency_pair,
             side=ttype,
             type=ORDER_TYPE_LIMIT,
             quantity=amount,
             price=price,
-            timeInForce=TIME_IN_FORCE_GTC)
+            timeInForce=TIME_IN_FORCE_GTC,
+            recvWindow=6000000)
 
         logging.info("place a {} order in binance {} {} {}".format(trade_side, currency_pair, price, amount))
 

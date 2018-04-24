@@ -10,5 +10,7 @@ class TgMiddleMan:
        # here you go
         req_msg = {'recipient_token': self.addr,
                    'text': msg , 'origin': 'Captain'}
-
-        requests.post(self.boturl, json=req_msg)
+        try:
+            return requests.post(self.boturl, json=req_msg, timeout=1)
+        except:
+            return None
